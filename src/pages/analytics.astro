@@ -3,7 +3,10 @@ import { Icon } from "astro-icon/components";
 import AnalyticsSnapshot from "@/components/widget/AnalyticsSnapshot.astro";
 import { analyticsConfig, commentConfig } from "@/config";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
-import { COMMENT_AVATAR_PROVIDERS, DEFAULT_COMMENT_AVATAR } from "@/utils/comment-avatars";
+import {
+	COMMENT_AVATAR_PROVIDERS,
+	DEFAULT_COMMENT_AVATAR,
+} from "@/utils/comment-avatars";
 
 const umamiAnalytics = analyticsConfig.umamiAnalytics;
 const shareId = umamiAnalytics?.shareId ?? "";

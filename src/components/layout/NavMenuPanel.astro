@@ -1,7 +1,7 @@
 ---
+import ManagedNavigation from "./ManagedNavigation.svelte";
 import { Icon } from "astro-icon/components";
 import ImageWrapper from "@/components/common/ImageWrapper.astro";
-import ThemeSwitch from "@/components/themes/ThemeSwitch.astro";
 import { profileConfig } from "@/config/profileConfig";
 import { siteConfig } from "@/config/siteConfig";
 import type { NavBarLink } from "@/types/config";
@@ -11,55 +11,7 @@ interface Props {
 	links: NavBarLink[];
 }
 
-const processedLinks = Astro.props.links;
 const mobileProfileName = siteConfig.title;
-
-const normalizePath = (path: string) => {
-	let pathname = path.split(/[?#]/)[0] || "/";
-
-	if (/^https?:\/\//.test(pathname)) {
-		pathname = new URL(pathname).pathname;
-	}
-
-	if (!pathname.startsWith("/")) {
-		pathname = `/${pathname}`;
-	}
-
-	const baseUrl = import.meta.env.BASE_URL || "/";
-	const basePath = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
-	if (basePath && basePath !== "/" && pathname.startsWith(basePath)) {
-		pathname = pathname.slice(basePath.length) || "/";
-	}
-
-	return pathname.length > 1 ? pathname.replace(/\/+$/g, "") : "/";
-};
-
-const currentPath = normalizePath(Astro.url.pathname);
-
-const isLinkActive = (item: NavBarLink) => {
-	if (item.external || !item.url || item.url === "#") return false;
-
-	const itemPath = normalizePath(item.url);
-	if (itemPath === "/") return currentPath === "/";
-	return currentPath === itemPath || currentPath.startsWith(`${itemPath}/`);
-};
-
-const mobileGroups = processedLinks.map((link) => ({
-	...link,
-	children:
-		link.children && link.children.length > 0 ? link.children : undefined,
-	activePaths: [
-		link.url && link.url !== "#" && !link.external
-			? normalizePath(link.url)
-			: null,
-		...(link.children
-			?.filter((child) => !child.external && child.url && child.url !== "#")
-			.map((child) => normalizePath(child.url)) ?? []),
-	].filter((path): path is string => Boolean(path)),
-}));
-
-const getLinkIcon = (item: NavBarLink, fallback: string) =>
-	item.icon || fallback;
 ---
 
 <div id="nav-menu-panel" class="mobile-nav float-panel-closed transition-all fixed" aria-hidden="true">
@@ -123,82 +75,7 @@ const getLinkIcon = (item: NavBarLink, fallback: string) =>
 		)}
 
 		<nav class="mobile-links" aria-label="移动端主导航">
-			{mobileGroups.map((group, groupIndex) =>
-				group.children ? (
-					<section
-						class:list={[
-							"mobile-nav-group",
-							group.children.some((child) => isLinkActive(child)) &&
-								"mobile-nav-group-active",
-						]}
-						data-open={group.children.some((child) => isLinkActive(child)) ? "true" : "false"}
-						data-mobile-nav-item
-						data-active-paths={group.activePaths.join("|")}
-					>
-						<button
-							type="button"
-							class="mobile-group-title"
-							aria-expanded={group.children.some((child) => isLinkActive(child)) ? "true" : "false"}
-							aria-controls={`mobile-nav-submenu-${groupIndex}`}
-						>
-							<Icon is:inline name={getLinkIcon(group, "material-symbols:folder-rounded")} class="mobile-group-icon" aria-hidden="true" />
-							<span>{group.name}</span>
-							<Icon is:inline name="material-symbols:keyboard-arrow-down-rounded" class="mobile-group-chevron" aria-hidden="true" />
-						</button>
-						<div
-							class="mobile-group-panel"
-							id={`mobile-nav-submenu-${groupIndex}`}
-							inert={!group.children.some((child) => isLinkActive(child))}
-							aria-hidden={!group.children.some((child) => isLinkActive(child)) ? "true" : undefined}
-						>
-							<div class="mobile-group-links">
-								{group.children.map((child) => (
-									<a
-										href={child.external ? child.url : url(child.url)}
-										class:list={[
-											"mobile-link mobile-sub-link",
-											isLinkActive(child) && "mobile-nav-active",
-										]}
-										target={child.external ? "_blank" : null}
-					aria-current={isLinkActive(child) ? "page" : undefined}
-					data-mobile-nav-item
-					data-active-paths={!child.external ? normalizePath(child.url) : ""}
-					>
-										{child.external && child.iconImage ? (
-											<img src={child.iconImage} alt="" aria-hidden="true" class="mobile-nav-item-icon object-contain" loading="eager" decoding="async" />
-										) : (
-											<Icon is:inline name={getLinkIcon(child, "material-symbols:arrow-forward-rounded")} class="mobile-nav-item-icon" />
-										)}
-									<span class="mobile-nav-item-text">{child.name}</span>
-									{child.external && <Icon is:inline name="material-symbols:open-in-new-rounded" class="mobile-nav-external" />}
-									</a>
-								))}
-							</div>
-						</div>
-					</section>
-				) : (
-					<a
-						href={group.external ? group.url : url(group.url)}
-						class:list={[
-							"mobile-link",
-							isLinkActive(group) && "mobile-nav-active",
-						]}
-						target={group.external ? "_blank" : null}
-						aria-current={isLinkActive(group) ? "page" : undefined}
-						data-mobile-nav-item
-						data-active-paths={group.activePaths.join("|")}
-					>
-						{group.external && group.iconImage ? (
-							<img src={group.iconImage} alt="" aria-hidden="true" class="mobile-nav-item-icon object-contain" loading="eager" decoding="async" />
-						) : (
-							<Icon is:inline name={getLinkIcon(group, "material-symbols:arrow-forward-rounded")} class="mobile-nav-item-icon" />
-						)}
-						<span class="mobile-nav-item-text">{group.name}</span>
-						{group.external && <Icon is:inline name="material-symbols:open-in-new-rounded" class="mobile-nav-external" />}
-					</a>
-				)
-			)}
-			<ThemeSwitch id="aemeath-mobile-theme-switch" navigation inline />
+<ManagedNavigation mobile client:load />
 		</nav>
 		<div class="mobile-footer">
 			<span class="mobile-prompt">{siteConfig.title} · {siteConfig.subtitle}</span>

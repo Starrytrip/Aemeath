@@ -1,7 +1,7 @@
 <div align="center">
-  <h1>Aemeath</h1>
+  <h1>Yukina</h1>
   <p><strong>朝朝听雨 · 物物而不物于物，念念而不念于念</strong></p>
-  <p>基于 Astro 7 的个人博客，提供 Aemeath 与 Pure 两套主题。</p>
+  <p>基于 Astro 7 的个人博客，提供 Yukina 与 Pure 两套主题。</p>
   <p>
     <a href="https://rainzt.cn/">访问博客</a> ·
     <a href="https://github.com/Jarvis0227/Aemeath">GitHub 仓库</a> ·
@@ -9,7 +9,7 @@
   </p>
   <p>
     <a href="https://astro.build/"><img src="https://img.shields.io/badge/Astro-7-BC52EE?logo=astro&logoColor=white" alt="Astro 7"></a>
-    <img src="https://img.shields.io/badge/Aemeath-V4.3.0-4A67D6" alt="Aemeath V4.3.0">
+    <img src="https://img.shields.io/badge/Yukina-V4.3.0-4A67D6" alt="Yukina V4.3.0">
     <a href="https://svelte.dev/"><img src="https://img.shields.io/badge/Svelte-UI-FF3E00?logo=svelte&logoColor=white" alt="Svelte UI"></a>
     <img src="https://img.shields.io/badge/TypeScript-3178C6?logo=typescript&logoColor=white" alt="TypeScript">
     <img src="https://img.shields.io/badge/Node.js-%3E%3D22.12-339933?logo=node.js&logoColor=white" alt="Node.js 22.12+">
@@ -30,17 +30,17 @@
 
 ## 双主题预览
 
-### Aemeath · 壁纸、卡片与个人主页
+### Yukina · 壁纸、卡片与个人主页
 
 全屏壁纸搭配个人介绍卡片、角色装饰和侧栏组件，保留博客的个性与氛围。
 
 <p align="center">
   <a href="https://rainzt.cn/?siteTheme=aemeath">
-    <img src="docs/images/home-aemeath.png" alt="Aemeath 主题主页：全屏壁纸、个人介绍卡片、顶部导航与角色装饰" width="100%">
+    <img src="docs/images/home-yukina.png" alt="Yukina 主题主页：全屏壁纸、个人介绍卡片、顶部导航与角色装饰" width="100%">
   </a>
 </p>
 
-<p align="center"><a href="https://rainzt.cn/?siteTheme=aemeath">查看 Aemeath 主题 →</a></p>
+<p align="center"><a href="https://rainzt.cn/?siteTheme=aemeath">查看 Yukina 主题 →</a></p>
 
 ### Pure · 简洁导航与文章阅读
 
@@ -54,7 +54,7 @@
 
 <p align="center"><a href="https://rainzt.cn/?siteTheme=pure">查看 Pure 主题 →</a></p>
 
-| | Aemeath | Pure |
+| | Yukina | Pure |
 | --- | --- | --- |
 | 主页 | 壁纸与个人介绍，卡片式内容区 | 文章列表，简介与封面 |
 | 布局 | 多侧栏与装饰组件 | 简洁导航与阅读侧栏 |
@@ -67,7 +67,7 @@
 
 ## 项目简介
 
-Aemeath 是「朝朝听雨」的开源博客项目，对应线上站点 [rainzt.cn](https://rainzt.cn/)。它基于 **Astro 7、Svelte 和 TypeScript**，以 Markdown / MDX 管理内容，将文章阅读、个人展示和日常内容放在同一个站点中。
+Yukina 是「朝朝听雨」的开源博客项目，对应线上站点 [rainzt.cn](https://rainzt.cn/)。它基于 **Astro 7、Svelte 和 TypeScript**，以 Markdown / MDX 管理内容，将文章阅读、个人展示和日常内容放在同一个站点中。
 
 两套主题提供不同的浏览体验，文章与配置只需维护一份。你可以从空模板开始，替换头像、壁纸与站点资料，再逐步加入文章、友链、相册和其他页面内容。
 
@@ -75,7 +75,7 @@ Aemeath 是「朝朝听雨」的开源博客项目，对应线上站点 [rainzt.
 
 <table>
   <tr>
-    <td width="33%"><strong>🎨 双主题与外观</strong><br>Aemeath / Pure 切换、深浅色、字体、色相、壁纸与响应式布局。</td>
+    <td width="33%"><strong>🎨 双主题与外观</strong><br>Yukina / Pure 切换、深浅色、字体、色相、壁纸与响应式布局。</td>
     <td width="33%"><strong>✍️ 写作与阅读</strong><br>Markdown / MDX、分类、标签、归档、Pagefind 全文搜索、RSS 与阅读目录。</td>
     <td width="33%"><strong>🧭 个人页面</strong><br>关于、项目、友链、朋友圈、留言板、工具与更新日志。</td>
   </tr>
@@ -93,8 +93,8 @@ Aemeath 是「朝朝听雨」的开源博客项目，对应线上站点 [rainzt.
 环境要求：**Node.js 22.12 或更高版本**、**pnpm 9**。
 
 ```sh
-git clone https://github.com/Jarvis0227/Aemeath.git
-cd Aemeath
+git clone https://github.com/Jarvis0227/Aemeath.git Yukina
+cd Yukina
 pnpm install
 pnpm dev
 ```
@@ -178,6 +178,6 @@ docs/
 
 ## 版权与致谢
 
-Aemeath 在 [CuteLeaf / Firefly](https://github.com/CuteLeaf/Firefly) 与 [saicaca / Fuwari](https://github.com/saicaca/fuwari) 的基础上继续开发，感谢原作者与贡献者。Pure 布局参考并适配 [Astro Theme Pure](https://github.com/cworld1/astro-theme-pure)，保留其 [Apache-2.0 许可声明](docs/licenses/astro-theme-pure-LICENSE.txt)。
+Yukina 在 [CuteLeaf / Firefly](https://github.com/CuteLeaf/Firefly) 与 [saicaca / Fuwari](https://github.com/saicaca/fuwari) 的基础上继续开发，感谢原作者与贡献者。Pure 布局参考并适配 [Astro Theme Pure](https://github.com/cworld1/astro-theme-pure)，保留其 [Apache-2.0 许可声明](docs/licenses/astro-theme-pure-LICENSE.txt)。
 
 项目代码许可见 [MIT License](LICENSE)，第三方声明见 [`docs/licenses/`](docs/licenses/)。角色、壁纸、音乐和其他第三方素材的权利属于对应权利人，使用与再分发时请分别核对其适用许可。

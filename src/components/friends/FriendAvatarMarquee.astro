@@ -9,7 +9,12 @@ interface Props {
 const { friends, ownSiteUrl } = Astro.props;
 const duration = Math.max(22, friends.length * 0.82);
 const normalizeFriendUrl = (url: string) =>
-	url.trim().replace(/^https?:\/\//i, "").replace(/^www\./i, "").replace(/\/+$/, "").toLowerCase();
+	url
+		.trim()
+		.replace(/^https?:\/\//i, "")
+		.replace(/^www\./i, "")
+		.replace(/\/+$/, "")
+		.toLowerCase();
 ---
 
 <friend-avatar-marquee

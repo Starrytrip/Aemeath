@@ -54,8 +54,8 @@ const heatmapWeekTemplate = i18n(I18nKey.calendarHeatmapWeek);
 // 获取当前语言
 const currentLang = siteConfig.lang || "en";
 
-const calendarDataUrl = url("/api/allPostMeta.json");
-const postUrlPrefix = url("/posts/");
+const calendarDataUrl = "/api/v1/articles";
+const readerUrl = url("/reader/");
 ---
 
 <WidgetLayout name={i18n(I18nKey.calendar)} showTitle={showTitle} id="calendar-widget" class={className} style={style}>
@@ -90,6 +90,10 @@ const postUrlPrefix = url("/posts/");
       <div class="calendar-grid grid grid-cols-7 gap-1 pb-1" id="calendar-grid">
         <!-- 将由 JavaScript 填充 -->
       </div>
+      <div class="calendar-legend" aria-label="日历标记说明"><span><i class="calendar-shift-rest">休</i>放假</span><span><i class="calendar-shift-work">班</i>补班</span><span><i class="calendar-post-dot"></i>文章</span></div>
+      <p id="calendar-date-detail" class="calendar-date-detail" role="status">点击日期，查看农历与节日</p>
+      <a id="calendar-holiday-source" class="calendar-source" target="_blank" rel="noopener noreferrer" hidden></a>
+      <p id="calendar-holiday-notice" class="calendar-source"></p>
     </div>
 
     <!-- 年度文章热力图 -->
@@ -111,6 +115,8 @@ const postUrlPrefix = url("/posts/");
       <!-- 将由 JavaScript 填充 -->
     </div>
     
+    <p id="calendar-post-status" class="calendar-source" role="status" hidden></p>
+
     <!-- 文章列表 -->
     <div id="calendar-posts" class="mt-3">
       <div class="border-t border-neutral-200 dark:border-neutral-700 mb-2" id="calendar-posts-divider" style="display: none;"></div>
@@ -121,7 +127,7 @@ const postUrlPrefix = url("/posts/");
   </div>
 </WidgetLayout>
 
-<script is:inline data-swup-ignore-script define:vars={{ monthNames, weekDays, yearText, currentLang, calendarDataUrl, postUrlPrefix, heatmapWeekTemplate }}>
+<script is:inline data-swup-ignore-script define:vars={{ monthNames, weekDays, yearText, currentLang, calendarDataUrl, readerUrl, heatmapWeekTemplate }}>
   // State variables
   let displayYear = new Date().getFullYear();
   let displayMonth = new Date().getMonth();
@@ -130,36 +136,68 @@ const postUrlPrefix = url("/posts/");
   let allPostsData = [];
   let availableYears = [];
 
+  let fetchGeneration = 0;
+  let articleRequest = null;
   async function fetchData() {
+    const widget = document.getElementById('calendar-widget');
+    if (!widget) return;
+    articleRequest?.abort();
+    const controller = new AbortController();
+    articleRequest = controller;
+    const generation = ++fetchGeneration;
     try {
-      // 使用缓存避免 swup 导航时重复请求
-      if (window.__allPostMetaCache) {
-        allPostsData = window.__allPostMetaCache;
-      } else {
-        const response = await fetch(calendarDataUrl);
-        allPostsData = await response.json();
-        window.__allPostMetaCache = allPostsData;
-      }
-      
-      // Reconstruct postDateMap and availableYears
+      const response = await fetch(calendarDataUrl, { cache: 'no-store', signal: AbortSignal.any([controller.signal, AbortSignal.timeout(8000)]) });
+      if (!response.ok) throw new Error('Article calendar request failed');
+      const rows = await response.json();
+      if (!Array.isArray(rows)) throw new Error('Invalid article list');
+      if (generation !== fetchGeneration || widget !== document.getElementById('calendar-widget')) return;
+      allPostsData = rows.flatMap(post => {
+        if (typeof post.slug !== 'string' || !post.slug || typeof post.title !== 'string' || typeof post.date !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(post.date)) return [];
+        // 后端日期是日历日期，使用本地中午解析，避免 UTC 换算导致日期错位。
+        const date = new Date(`${post.date}T12:00:00`);
+        const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        if (key !== post.date) return [];
+        return [{ title: post.title, published: date.getTime(), url: `${readerUrl}?${new URLSearchParams({ slug: post.slug })}` }];
+      });
       postDateMap = {};
       const yearsSet = new Set();
       allPostsData.forEach(post => {
         const date = new Date(post.published);
-        const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-        if (!postDateMap[dateKey]) {
-          postDateMap[dateKey] = [];
-        }
-        postDateMap[dateKey].push({ id: post.id, title: post.title, published: post.published });
+        const dateKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        (postDateMap[dateKey] ||= []).push(post);
         yearsSet.add(date.getFullYear());
       });
-      
       availableYears = Array.from(yearsSet).sort((a, b) => b - a);
-      
+      const status = document.getElementById('calendar-post-status');
+      if (status) status.hidden = true;
       renderCalendar();
     } catch (error) {
-      console.error("Failed to fetch calendar data", error);
+      if (generation !== fetchGeneration || widget !== document.getElementById('calendar-widget')) return;
+      allPostsData = [];
+      postDateMap = {};
+      availableYears = [];
+      const status = document.getElementById('calendar-post-status');
+      if (status) { status.textContent = '文章暂时加载失败，请刷新重试。'; status.hidden = false; }
+      renderCalendar();
     }
+  }
+
+  function renderPostLinks(posts, postsList) {
+    const links = posts.map(post => {
+      const link = document.createElement('a');
+      link.href = post.url;
+      link.className = 'flex justify-between items-center text-sm text-neutral-700 dark:text-neutral-300 hover:text-(--primary) dark:hover:text-(--primary) transition-colors px-2 py-1 rounded hover:bg-transparent';
+      const title = document.createElement('span');
+      title.className = 'truncate';
+      title.textContent = post.title;
+      const date = new Date(post.published);
+      const label = document.createElement('span');
+      label.className = 'text-xs text-neutral-500 dark:text-neutral-400 ml-2 whitespace-nowrap';
+      label.textContent = `${date.getMonth() + 1}-${date.getDate()}`;
+      link.append(title, label);
+      return link;
+    });
+    postsList.replaceChildren(...links);
   }
 
   function renderHeatmap() {
@@ -354,7 +392,7 @@ const postUrlPrefix = url("/posts/");
     calendarGrid.innerHTML = calendarDays.map(({day, hasPost, count, dateKey}) => {
       const isToday = day === currentDate && isCurrentMonth;
       const classes = [
-        "calendar-day aspect-square flex items-center justify-center rounded text-sm relative cursor-pointer"
+        "calendar-day flex flex-col items-center justify-center rounded text-sm relative cursor-pointer"
       ];
       
       if (!day) {
@@ -369,16 +407,18 @@ const postUrlPrefix = url("/posts/");
         classes.push("ring-2 ring-(--primary)");
       }
       
+      if (!day) return '<span aria-hidden="true"></span>';
       return `
-        <div
+        <button type="button"
           class="${classes.join(' ')}"
           data-date="${dateKey}"
           data-has-post="${hasPost}"
+          data-post-count="${count}"
+          ${isToday ? 'aria-current="date"' : ''}
         >
-          ${day || ''}
+          <span class="calendar-solar">${day}</span>
           ${hasPost ? '<span class="absolute bottom-0 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-(--primary)"></span>' : ''}
-          ${hasPost && count > 1 ? `<span class="absolute top-0 right-0 text-[10px] text-(--primary) font-bold">${count}</span>` : ''}
-        </div>
+        </button>
       `;
     }).join('');
     
@@ -393,6 +433,7 @@ const postUrlPrefix = url("/posts/");
     
     // 添加点击事件监听
     setupClickHandlers(currentMonthPosts);
+    document.dispatchEvent(new CustomEvent('calendar:render'));
   }
 
   function renderMonthView() {
@@ -474,15 +515,7 @@ const postUrlPrefix = url("/posts/");
     }
     
     if (postsList) {
-      postsList.innerHTML = visiblePosts.map(post => {
-        const date = new Date(post.published);
-        const dateStr = `${date.getMonth() + 1}-${date.getDate()}`;
-        return `
-        <a href="${postUrlPrefix}${post.id}/" class="flex justify-between items-center text-sm text-neutral-700 dark:text-neutral-300 hover:text-(--primary) dark:hover:text-(--primary) transition-colors px-2 py-1 rounded hover:bg-transparent">
-          <span class="truncate">${post.title}</span>
-          <span class="text-xs text-neutral-500 dark:text-neutral-400 ml-2 whitespace-nowrap">${dateStr}</span>
-        </a>
-      `}).join('');
+      renderPostLinks(visiblePosts, postsList);
       
       // 显示/隐藏分割线
       if (divider) {
@@ -534,15 +567,7 @@ const postUrlPrefix = url("/posts/");
           }
 
           // 渲染文章列表
-          postsList.innerHTML = posts.map(post => {
-            const date = new Date(post.published);
-            const dateStr = `${date.getMonth() + 1}-${date.getDate()}`;
-            return `
-            <a href="${postUrlPrefix}${post.id}/" class="flex justify-between items-center text-sm text-neutral-700 dark:text-neutral-300 hover:text-(--primary) dark:hover:text-(--primary) transition-colors px-2 py-1 rounded hover:bg-transparent">
-              <span class="truncate">${post.title}</span>
-              <span class="text-xs text-neutral-500 dark:text-neutral-400 ml-2 whitespace-nowrap">${dateStr}</span>
-            </a>
-          `}).join('');
+          renderPostLinks(posts, postsList);
           
           // 显示分割线
           if (divider) {
@@ -578,11 +603,14 @@ const postUrlPrefix = url("/posts/");
   }
 
   function initCalendar() {
+      if (!document.getElementById("calendar-widget")) return;
+      allPostsData = []; postDateMap = {}; availableYears = [];
       // Reset to current date on init
       const now = new Date();
       displayYear = now.getFullYear();
       displayMonth = now.getMonth();
       
+      renderCalendar();
       fetchData();
       
       // Bind events
@@ -610,10 +638,16 @@ const postUrlPrefix = url("/posts/");
   // 页面加载时渲染日历
   initCalendar();
 
+  window.addEventListener("focus", () => { if (document.visibilityState === "visible") void fetchData(); });
+
   // 页面切换时重新渲染
   document.addEventListener("swup:contentReplaced", () => {
     setTimeout(initCalendar, 100);
   });
+</script>
+
+<script>
+  import "@/scripts/calendar-details";
 </script>
 
 <style>
@@ -625,9 +659,33 @@ const postUrlPrefix = url("/posts/");
   }
 
   :global(.calendar-day) {
-    transition: all 0.2s ease;
-    min-height: 32px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    min-width: 0;
+    min-height: 51px;
+    width: 100%;
+    gap: 2px;
+    padding: 5px 0;
+    background: transparent;
   }
+
+  :global(.calendar-day:hover), :global(.calendar-day:focus-visible) {
+    background: var(--btn-regular-bg);
+  }
+  :global(.calendar-day:focus-visible) { outline: 2px solid var(--primary); outline-offset: 1px; }
+  :global(.calendar-solar) { font-size: 0.9rem; line-height: 1.3; }
+  :global(.calendar-lunar) { display: block; width: 100%; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; font-size: 0.56rem; line-height: 1.4; font-weight: 400; color: var(--content-meta); }
+  :global(.calendar-festival .calendar-lunar) { color: var(--primary); }
+  :global(.calendar-shift) { position: absolute; right: 0; top: 0; font-size: 0.48rem; line-height: 1.2; border-radius: 3px; padding: 1px 2px; }
+  :global(.calendar-shift-rest) { color: var(--primary); background: var(--btn-regular-bg); }
+  :global(.calendar-shift-work) { color: #b56d2a; background: color-mix(in srgb, #b56d2a 12%, transparent); }
+  .calendar-legend { display: flex; gap: 0.8rem; align-items: center; margin-top: 0.7rem; font-size: 0.6rem; color: var(--content-meta); }
+  .calendar-legend span { display: inline-flex; gap: 0.25rem; align-items: center; }
+  .calendar-legend i { font-style: normal; padding: 1px 3px; border-radius: 3px; }
+  .calendar-legend .calendar-post-dot { width: 4px; height: 4px; padding: 0; border-radius: 50%; background: var(--primary); }
+  .calendar-date-detail { margin: 0.6rem 0 0.3rem; font-size: 0.65rem; line-height: 1.7; color: var(--content-meta); min-height: 2.2em; }
+  .calendar-source { font-size: 0.6rem; line-height: 1.6; color: var(--content-meta); }
+  .calendar-source:empty { display: none; }
+  a.calendar-source:hover { color: var(--primary); }
 
   :global(.calendar-day[data-has-post="true"]:hover) {
     transform: translateY(-2px);

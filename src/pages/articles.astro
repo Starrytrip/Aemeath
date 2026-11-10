@@ -1,0 +1,5 @@
+---
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+import PublishedArticles from "@/components/admin/PublishedArticles.svelte";
+---
+<MainGridLayout title="已发布文章"><PublishedArticles client:only="svelte" /></MainGridLayout>

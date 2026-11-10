@@ -304,7 +304,7 @@ async function fetchText(
 				headers: {
 					Accept: accept,
 					"Cache-Control": "no-cache",
-					"User-Agent": `Aemeath-Moments/1.1 (+${siteConfig.site_url}/)`,
+					"User-Agent": `Yukina-Moments/1.1 (+${siteConfig.site_url}/)`,
 				},
 			});
 			if (response.ok) {
@@ -452,7 +452,10 @@ async function refreshFriendsFeed(
 		async (friend) => {
 			// Use this release's posts for our own feed; the live RSS may still
 			// contain a deleted article until this build has been published.
-			if (normalizeSiteUrl(friend.siteurl) === normalizeSiteUrl(siteConfig.site_url)) {
+			if (
+				normalizeSiteUrl(friend.siteurl) ===
+				normalizeSiteUrl(siteConfig.site_url)
+			) {
 				const posts = await getSortedPostsList();
 				return {
 					friend,

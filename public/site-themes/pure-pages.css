@@ -114,7 +114,7 @@ html.dark #pure-shell .friend-card--recommended .friend-recommended-badge { back
 #pure-shell :is(.moments-shell, .tools-page) { padding: 0; border: 0; border-radius: 0; }
 #pure-shell :is(.moments-heading h1, .tools-hero h1, .tools-kicker, .profile-kicker) { display: none; }
 #pure-shell :is(.moments-heading-icon, .moment-flow, .moment-flow-stars, .moments-random-article__noise, .moments-random-article__sheen) { display: none !important; }
-/* Tool cards and recommendation badges share Aemeath's existing styles and effects. */
+/* Tool cards and recommendation badges share Yukina's existing styles and effects. */
 #pure-shell :is(.moment-card, .profile-project, .profile-panel, .notice-main, .notice-hero, .history-card) { background: var(--pure-bg) !important; border: 1px solid var(--pure-line) !important; border-radius: 1rem; box-shadow: none !important; }
 #pure-shell :is(.moment-card, .profile-project, .profile-panel, .notice-main)::before,
 #pure-shell :is(.moment-card, .profile-project, .profile-panel, .notice-main)::after { display: none !important; }

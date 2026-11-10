@@ -1,0 +1,1171 @@
+---
+interface Props {
+	path: string;
+}
+
+const { path } = Astro.props;
+---
+
+<div class="yukina-comments" data-yukina-comments data-page={path}>
+  <form class="ac-editor ac-form" data-comment-form novalidate>
+    <div class="ac-identity" data-identity hidden>以 <strong data-identity-name></strong> 的身份发表评论</div>
+    <div class="ac-guest-fields" data-guest-fields>
+      <input
+        class="ac-input ac-field"
+        name="nick"
+        type="text"
+        maxlength="30"
+        placeholder="昵称"
+        autocomplete="nickname"
+        aria-label="昵称"
+      />
+      <input
+        class="ac-input ac-field"
+        name="email"
+        type="email"
+        maxlength="120"
+        placeholder="邮箱（加密存储）"
+        autocomplete="email"
+        aria-label="邮箱"
+      />
+      <input
+        class="ac-input ac-field"
+        name="website"
+        type="url"
+        maxlength="200"
+        placeholder="个人网站（可选）"
+        autocomplete="url"
+        aria-label="个人网站"
+      />
+    </div>
+    <textarea
+      class="ac-input ac-textarea"
+      name="content"
+      rows="4"
+      maxlength="1000"
+      required
+      placeholder={"良言一句三冬暖，恶语伤人六月寒\n邮箱仅用于回复通知，登录非必须"}
+    ></textarea>
+    <div class="ac-preview" data-preview hidden></div>
+    <div class="ac-emoji-panel" data-emoji-panel hidden></div>
+    <div class="ac-editor-foot">
+      <div class="ac-tools">
+        <button
+          type="button"
+          class="ac-tool"
+          data-emoji-btn
+          title="表情"
+          aria-label="表情"
+        >
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"></circle><path d="M8.5 14.5s1.3 2 3.5 2 3.5-2 3.5-2"></path><circle cx="9" cy="10" r="1"></circle><circle cx="15" cy="10" r="1"></circle></svg>
+        </button>
+        <button
+          type="button"
+          class="ac-tool ac-tool-gif"
+          data-gif-btn
+          title="插入 GIF"
+          aria-label="插入 GIF"
+        >GIF</button>
+        <button
+          type="button"
+          class="ac-tool"
+          data-image-btn
+          title="插入图片"
+          aria-label="插入图片"
+        >
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><circle cx="8.5" cy="9.5" r="1.5"></circle><path d="M21 15l-5-5-8 8"></path></svg>
+        </button>
+        <button
+          type="button"
+          class="ac-tool"
+          data-preview-btn
+          title="预览"
+          aria-label="预览"
+        >
+          <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"></rect><circle cx="11" cy="11" r="3"></circle><path d="M13.5 13.5L17 17"></path></svg>
+        </button>
+      </div>
+      <span class="ac-counter"><span data-counter>0</span> / 1000 字</span>
+      <button type="button" class="ac-login" data-editor-login data-login-open hidden>登录</button>
+      <button type="submit" class="ac-submit !rounded-xl !border !border-(--line-divider) !bg-transparent !text-(--primary) hover:!border-(--primary)" data-comment-submit>提交</button>
+    </div>
+  </form>
+
+  <div class="ac-list-head flex flex-wrap items-center gap-4 mt-3">
+    <h3 class="ac-count mr-auto text-xl font-bold text-(--btn-content)"><span data-comment-count>0</span> 评论</h3>
+    <div class="ac-filter-group relative flex flex-wrap items-center gap-2.5 max-sm:order-3 max-sm:w-full">
+      <button type="button" class="ac-mine cursor-pointer rounded-full border border-(--line-divider) px-3.5 py-2.5 text-sm text-(--primary) aria-pressed:border-(--primary) aria-pressed:bg-(--btn-regular-bg) focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-(--primary)" data-only-mine aria-pressed="false"><svg viewBox="0 0 24 24" class="inline size-4" fill="currentColor" aria-hidden="true"><path d="M3 4h18l-7 8v7l-4 2v-9z" /></svg> <span data-mine-label>只看自己的评论</span></button>
+      <span class="ac-filter-hint text-xs text-(--content-meta)" data-filter-hint>使用曾填写过的邮箱筛选</span>
+      <form data-filter-form hidden class="absolute top-full right-0 z-20 mt-2 w-80 max-w-[calc(100vw-3rem)] rounded-xl border border-(--line-divider) bg-(--card-bg) p-3 shadow-lg max-sm:right-auto max-sm:left-0">
+        <p class="mb-2 text-xs leading-relaxed text-(--content-meta)">输入发表留言时使用的邮箱，筛选你的评论。</p>
+        <div class="flex flex-wrap gap-2">
+          <input data-filter-email type="email" required aria-label="筛选邮箱" autocomplete="email" placeholder="发表留言时的邮箱" class="min-w-0 flex-1 rounded-lg border border-(--line-divider) bg-(--btn-regular-bg) px-2 py-2 text-xs text-(--btn-content)" />
+          <button type="submit" class="cursor-pointer rounded-lg border border-(--primary) px-2 text-xs text-(--primary)">筛选</button>
+          <button type="button" data-filter-cancel class="cursor-pointer px-1 text-xs text-(--content-meta)">取消</button>
+        </div>
+      </form>
+    </div>
+    <div class="ac-sort flex items-center gap-4 max-sm:gap-2.5" data-sort-group>
+      <button type="button" class="ac-sort-btn is-active cursor-pointer text-xs text-(--content-meta) hover:text-(--primary) [&.is-active]:text-(--primary)" data-sort="asc">按正序</button>
+      <button type="button" class="ac-sort-btn cursor-pointer text-xs text-(--content-meta) hover:text-(--primary) [&.is-active]:text-(--primary)" data-sort="desc">按倒序</button>
+      <button type="button" class="ac-sort-btn cursor-pointer text-xs text-(--content-meta) hover:text-(--primary) [&.is-active]:text-(--primary)" data-sort="hot">按热度</button>
+    </div>
+  </div>
+
+  <div class="ac-status py-1 text-sm text-(--content-meta) [&.ac-error]:text-red-500" data-comments-status aria-live="polite">评论加载中…</div>
+  <ol class="ac-list m-0 flex list-none flex-col p-0" data-comments-list></ol>
+</div>
+
+<script>
+  import {
+    apiFetch,
+    fetchMe,
+    toggleCommentLike,
+    uploadCommentImage,
+    type AuthUser,
+    type CommentRow,
+  } from "@/utils/api-client";
+
+  const NICK_KEY = "yukina.comment-nick";
+  const EMAIL_KEY = "yukina.comment-email";
+  const WEBSITE_KEY = "yukina.comment-website";
+
+  const REPLY_ICON = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 6a2 2 0 0 1 2-2h12a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H9l-4 3v-3H6a2 2 0 0 1-2-2Z"/></svg>`;
+  const HEART_ICON = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.8 4.6a5.5 5.5 0 0 0-7.8 0L12 5.7l-1-1.1a5.5 5.5 0 0 0-7.8 7.8l1.1 1L12 21l7.7-7.6 1.1-1a5.5 5.5 0 0 0 0-7.8Z"/></svg>`;
+
+  const EMOJIS = [
+    "😀", "😂", "🤣", "😊", "😍", "🥰", "😘", "😎",
+    "🤔", "😴", "😭", "😡", "🥳", "🤗", "🙃", "😉",
+    "👍", "👏", "🙏", "💪", "🤝", "👀", "🔥", "✨",
+    "🎉", "❤️", "💔", "🌈", "☕", "🍉", "🌙", "⭐",
+  ];
+
+  let authHandler: (() => void) | null = null;
+
+  const readStorage = (key: string): string => {
+    try {
+      return localStorage.getItem(key) || "";
+    } catch {
+      return "";
+    }
+  };
+
+  const writeStorage = (key: string, value: string) => {
+    try {
+      if (value) localStorage.setItem(key, value);
+      else localStorage.removeItem(key);
+    } catch {
+      // 忽略隐私模式下的存储异常
+    }
+  };
+
+  const displayName = (user: AuthUser | null): string => {
+    if (!user) return "";
+    return user.nickname?.trim() || user.username;
+  };
+
+  const formatDate = (value: string, withTime = false) => {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return value;
+    const pad = (n: number) => String(n).padStart(2, "0");
+    const day = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+    if (!withTime) return day;
+    return `${day} ${pad(date.getHours())}:${pad(date.getMinutes())}`;
+  };
+
+  /** 从存储的设备信息生成展示文本：新数据已是解析好的标签，旧数据按 UA 粗略解析。 */
+  const describeUserAgent = (stored: string): string => {
+    if (!stored) return "";
+    // 提交端已解析为「浏览器 · 系统」标签，直接展示
+    if (!/mozilla\/|compatible|applewebkit|gecko\//i.test(stored)) return stored;
+
+    let browser = "";
+    let matched: RegExpMatchArray | null = null;
+    if ((matched = stored.match(/Edg\/(\d+)/))) browser = `Edge ${matched[1]}`;
+    else if ((matched = stored.match(/OPR\/(\d+)/))) browser = `Opera ${matched[1]}`;
+    else if ((matched = stored.match(/Chrome\/(\d+)/))) browser = `Chrome ${matched[1]}`;
+    else if ((matched = stored.match(/Firefox\/(\d+)/))) browser = `Firefox ${matched[1]}`;
+    else if ((matched = stored.match(/Version\/(\d+)[^)]*Safari/))) browser = `Safari ${matched[1]}`;
+
+    let os = "";
+    if (/Windows NT 10/.test(stored)) os = "Windows 10/11";
+    else if (/Windows NT 6\.1/.test(stored)) os = "Windows 7";
+    else if (/Windows/.test(stored)) os = "Windows";
+    else if ((matched = stored.match(/Android (\d+)/))) os = `Android ${matched[1]}`;
+    else if (/iPhone|iPad|iPod/.test(stored)) os = "iOS";
+    else if (/Mac OS X/.test(stored)) os = "macOS";
+    else if (/Linux/.test(stored)) os = "Linux";
+
+    return [browser, os].filter(Boolean).join(" · ");
+  };
+
+  /** 全局消息浮层（替代表单内提示文字）。 */
+  const showToast = (text: string, isError = false) => {
+    const toast = document.createElement("div");
+    toast.className = `ac-toast${isError ? " is-error" : ""}`;
+    toast.textContent = text;
+    document.body.appendChild(toast);
+    requestAnimationFrame(() => toast.classList.add("is-visible"));
+    setTimeout(() => {
+      toast.classList.remove("is-visible");
+      setTimeout(() => toast.remove(), 250);
+    }, 2200);
+  };
+
+  interface NavigatorUAData {
+    platform?: string;
+    getHighEntropyValues?: (hints: string[]) => Promise<{ platformVersion?: string }>;
+  }
+
+  /** 提交端解析设备标签；Windows 用 Client Hints 区分 Win10 / Win11。 */
+  const resolveDevice = async (): Promise<string> => {
+    const ua = navigator.userAgent;
+    let browser = "";
+    let matched: RegExpMatchArray | null = null;
+    if ((matched = ua.match(/Edg\/(\d+)/))) browser = `Edge ${matched[1]}`;
+    else if ((matched = ua.match(/OPR\/(\d+)/))) browser = `Opera ${matched[1]}`;
+    else if ((matched = ua.match(/Chrome\/(\d+)/))) browser = `Chrome ${matched[1]}`;
+    else if ((matched = ua.match(/Firefox\/(\d+)/))) browser = `Firefox ${matched[1]}`;
+    else if ((matched = ua.match(/Version\/(\d+)[^)]*Safari/))) browser = `Safari ${matched[1]}`;
+
+    let os = "";
+    const uad = (navigator as Navigator & { userAgentData?: NavigatorUAData }).userAgentData;
+    if (uad?.platform === "Windows" && uad.getHighEntropyValues) {
+      try {
+        const { platformVersion } = await uad.getHighEntropyValues(["platformVersion"]);
+        const major = Number(platformVersion?.split(".")[0] ?? 0);
+        os = major >= 13 ? "Windows 11" : "Windows 10";
+      } catch {
+        os = "Windows";
+      }
+    } else if (/Windows NT 10/.test(ua)) {
+      os = "Windows";
+    } else if (/Windows NT 6\.1/.test(ua)) {
+      os = "Windows 7";
+    } else if (/Windows/.test(ua)) {
+      os = "Windows";
+    } else if ((matched = ua.match(/Android (\d+)/))) {
+      os = `Android ${matched[1]}`;
+    } else if (/iPhone|iPad|iPod/.test(ua)) {
+      os = "iOS";
+    } else if (/Mac OS X/.test(ua)) {
+      os = "macOS";
+    } else if (/Linux/.test(ua)) {
+      os = "Linux";
+    }
+
+    return [browser, os].filter(Boolean).join(" · ");
+  };
+
+  const SAFE_IMAGE_URL = /^(https?:\/\/|\/api\/v1\/uploads\/)/i;
+  const IMAGE_MARKUP = /!\[([^\]]*)\]\(([^)\s]+)\)/g;
+
+  /**
+   * 渲染评论内容：支持 `![说明](图片地址)` 语法，其余按纯文本展示。
+   * 只允许 http(s) 与本站上传地址，避免注入非法协议。
+   */
+  const renderContent = (target: HTMLElement, content: string) => {
+    target.textContent = "";
+    if (!content) return;
+    let cursor = 0;
+    for (const match of content.matchAll(IMAGE_MARKUP)) {
+      const url = match[2];
+      if (!SAFE_IMAGE_URL.test(url)) continue;
+      const index = match.index ?? 0;
+      if (index > cursor) {
+        target.appendChild(document.createTextNode(content.slice(cursor, index)));
+      }
+      const img = document.createElement("img");
+      img.className = "ac-content-image";
+      img.src = url;
+      img.alt = match[1] || "";
+      img.loading = "lazy";
+      target.appendChild(img);
+      cursor = index + match[0].length;
+    }
+    if (cursor < content.length) {
+      target.appendChild(document.createTextNode(content.slice(cursor)));
+    }
+  };
+
+  interface CommentNode {
+    comment: CommentRow;
+    children: CommentNode[];
+  }
+
+  type SortMode = "asc" | "desc" | "hot";
+
+  const initComments = () => {
+    const root = document.querySelector<HTMLElement>("[data-yukina-comments]");
+    if (!root || root.dataset.bound === "true") return;
+    root.dataset.bound = "true";
+
+    const page = root.dataset.page || window.location.pathname;
+    const listEl = root.querySelector<HTMLElement>("[data-comments-list]");
+    const statusEl = root.querySelector<HTMLElement>("[data-comments-status]");
+    const countEl = root.querySelector<HTMLElement>("[data-comment-count]");
+    const form = root.querySelector<HTMLFormElement>("[data-comment-form]");
+    const counterEl = root.querySelector<HTMLElement>("[data-counter]");
+    const contentInput = form?.querySelector<HTMLTextAreaElement>('[name="content"]');
+    const guestFields = form?.querySelector<HTMLElement>("[data-guest-fields]");
+    const sortBtns = root.querySelectorAll<HTMLButtonElement>("[data-sort]");
+    const previewEl = root.querySelector<HTMLElement>("[data-preview]");
+    const emojiPanel = root.querySelector<HTMLElement>("[data-emoji-panel]");
+    const previewBtn = root.querySelector<HTMLButtonElement>("[data-preview-btn]");
+
+    let currentUser: AuthUser | null = null;
+    let openReply: HTMLElement | null = null;
+    let allComments: CommentRow[] = [];
+    let sortMode: SortMode = "asc";
+    let onlyMine = false;
+    let loadVersion = 0;
+    let filterEmail = "";
+    const filterForm = root.querySelector<HTMLFormElement>("[data-filter-form]");
+    const filterInput = root.querySelector<HTMLInputElement>("[data-filter-email]");
+    const mineBtn = root.querySelector<HTMLButtonElement>("[data-only-mine]");
+
+    const setStatus = (text: string, isError = false) => {
+      if (!statusEl) return;
+      statusEl.textContent = text;
+      statusEl.classList.toggle("ac-error", isError);
+      statusEl.hidden = !text;
+    };
+
+    /** 按登录态切换表单字段：登录后只留文本框。 */
+    const applyAuth = (scope: HTMLElement) => {
+      const guests = scope.querySelectorAll<HTMLElement>("[data-guest-fields]");
+      const note = scope.querySelector<HTMLElement>("[data-identity]");
+      const noteName = scope.querySelector<HTMLElement>("[data-identity-name]");
+      const loginBtn = scope.querySelector<HTMLElement>("[data-editor-login]");
+      const loggedIn = currentUser !== null;
+      guests.forEach((el) => {
+        el.hidden = loggedIn;
+      });
+      if (note) note.hidden = !loggedIn;
+      if (noteName) noteName.textContent = displayName(currentUser);
+      if (loginBtn) loginBtn.hidden = loggedIn;
+    };
+
+    const closeReply = () => {
+      openReply?.remove();
+      openReply = null;
+    };
+
+    /** 提交评论或回复；parentId 为空表示顶层评论。 */
+    const submitComment = async (
+      scope: HTMLFormElement,
+      parentId: number | null,
+    ) => {
+      const input = scope.querySelector<HTMLTextAreaElement>('[name="content"]');
+      const actionBtn = scope.querySelector<HTMLButtonElement>('[type="submit"]');
+      const content = input?.value.trim() || "";
+      if (!content) {
+        showToast("请填写评论内容", true);
+        input?.focus();
+        return;
+      }
+
+      const payload: Record<string, unknown> = { page, content };
+      if (parentId !== null) payload.parent_id = parentId;
+      payload.device = await resolveDevice();
+
+      if (!currentUser) {
+        const nick = scope.querySelector<HTMLInputElement>('[name="nick"]')?.value.trim() || "";
+        const email = scope.querySelector<HTMLInputElement>('[name="email"]')?.value.trim() || "";
+        const website = scope.querySelector<HTMLInputElement>('[name="website"]')?.value.trim() || "";
+        if (!nick) {
+          showToast("请填写昵称", true);
+          return;
+        }
+        if (website && !/^https?:\/\//i.test(website)) {
+          showToast("个人网站需以 http(s):// 开头", true);
+          return;
+        }
+        payload.nick = nick;
+        payload.email = email;
+        payload.website = website;
+        writeStorage(NICK_KEY, nick);
+        writeStorage(EMAIL_KEY, email);
+        writeStorage(WEBSITE_KEY, website);
+      }
+
+      if (actionBtn) actionBtn.disabled = true;
+      const originalText = actionBtn?.textContent || "提交";
+      if (actionBtn) actionBtn.textContent = "提交中…";
+      try {
+        await apiFetch<CommentRow>("/comments", {
+          method: "POST",
+          body: JSON.stringify(payload),
+        });
+        if (input) input.value = "";
+        if (parentId !== null) closeReply();
+        showToast(parentId !== null ? "回复成功" : "发表成功");
+        if (scope === form && counterEl) counterEl.textContent = "0";
+        if (scope === form && previewEl) {
+          previewEl.hidden = true;
+          previewEl.textContent = "";
+          previewBtn?.classList.remove("is-active");
+        }
+        await loadComments();
+      } catch (error) {
+        showToast(error instanceof Error ? error.message : "提交失败", true);
+      } finally {
+        if (actionBtn) {
+          actionBtn.disabled = false;
+          actionBtn.textContent = originalText;
+        }
+      }
+    };
+
+    /** 构建内联回复表单，字段按登录态显示。 */
+    const buildReplyForm = (parent: CommentRow): HTMLFormElement => {
+      const reply = document.createElement("form");
+      reply.className = "ac-form ac-reply-form";
+      reply.setAttribute("novalidate", "");
+      reply.innerHTML = `
+        <div class="ac-identity" data-identity hidden>以 <strong data-identity-name></strong> 的身份回复</div>
+        <div class="ac-guest-fields" data-guest-fields>
+          <input class="ac-input ac-field" name="nick" type="text" maxlength="30" placeholder="昵称" aria-label="昵称" />
+          <input class="ac-input ac-field" name="email" type="email" maxlength="120" placeholder="邮箱（加密存储）" aria-label="邮箱" />
+          <input class="ac-input ac-field" name="website" type="url" maxlength="200" placeholder="个人网站（可选）" aria-label="个人网站" />
+        </div>
+        <textarea class="ac-input ac-textarea" name="content" rows="3" maxlength="1000"></textarea>
+        <div class="ac-editor-foot">
+          <button type="button" class="ac-login" data-cancel>取消</button>
+          <button type="submit" class="ac-submit !rounded-xl !border !border-(--line-divider) !bg-transparent !text-(--primary) hover:!border-(--primary)" data-submit>回复</button>
+        </div>
+      `;
+
+      // 回填访客资料
+      const nickInput = reply.querySelector<HTMLInputElement>('[name="nick"]');
+      const emailInput = reply.querySelector<HTMLInputElement>('[name="email"]');
+      const websiteInput = reply.querySelector<HTMLInputElement>('[name="website"]');
+      if (nickInput) nickInput.value = readStorage(NICK_KEY);
+      if (emailInput) emailInput.value = readStorage(EMAIL_KEY);
+      if (websiteInput) websiteInput.value = readStorage(WEBSITE_KEY);
+      const input = reply.querySelector<HTMLTextAreaElement>('[name="content"]');
+      if (input) input.placeholder = `回复 ${parent.nick}…`;
+
+      applyAuth(reply);
+      reply.querySelector<HTMLButtonElement>("[data-cancel]")?.addEventListener("click", () => {
+        if (reply === openReply) closeReply();
+        else reply.remove();
+      });
+      reply.addEventListener("submit", (event) => {
+        event.preventDefault();
+        void submitComment(reply, parent.id);
+      });
+      return reply;
+    };
+
+    const createItem = (node: CommentNode): HTMLElement => {
+      const { comment } = node;
+      const item = document.createElement("li");
+      item.className = "ac-item group/comment grid grid-cols-[2.3rem_minmax(0,1fr)] items-start gap-x-[0.62rem] px-2 py-[0.72rem] border-t border-dashed border-(--line-divider) first:border-t-0 data-[side=right]:grid-cols-[minmax(0,1fr)_2.3rem] max-sm:grid-cols-[2rem_minmax(0,1fr)] max-sm:gap-x-[0.48rem] max-sm:px-0.5 max-sm:py-[0.58rem] max-sm:data-[side=right]:grid-cols-[minmax(0,1fr)_2rem]";
+      item.dataset.commentId = String(comment.id);
+      item.classList.toggle("is-admin", comment.is_admin);
+      item.dataset.side = comment.is_admin && comment.parent_id !== null ? "right" : "left";
+
+      const avatar = document.createElement("div");
+      avatar.className = "ac-avatar col-start-1 row-start-1 mt-0.5 flex size-[2.3rem] items-center justify-center overflow-hidden rounded-full bg-[#fff9eb] group-data-[side=right]/comment:col-start-2 group-[.is-admin]/comment:border-2 group-[.is-admin]/comment:border-[#1dbde8] group-[.is-admin]/comment:shadow-[0_0_0_2px_#1dbde826,0_0.22rem_0.55rem_#1dbde82e] [&_img]:size-full [&_img]:object-cover max-sm:size-8";
+      if (comment.avatar_url) {
+        const img = document.createElement("img");
+        img.src = comment.avatar_url;
+        img.alt = comment.nick;
+        img.loading = "lazy";
+        avatar.appendChild(img);
+      } else {
+        const img = document.createElement("img");
+        img.src = "/assets/comment-default-pig.webp";
+        img.alt = comment.nick;
+        img.loading = "lazy";
+        avatar.appendChild(img);
+      }
+
+      const body = document.createElement("div");
+      body.className = "ac-body col-start-2 row-start-1 min-w-0 group-data-[side=right]/comment:col-start-1";
+
+      const head = document.createElement("div");
+      head.className = "ac-head mb-2 flex max-w-[min(90%,76ch)] flex-wrap items-center gap-x-1.5 gap-y-1 group-data-[side=right]/comment:ml-auto group-data-[side=right]/comment:justify-end max-sm:max-w-[94%]";
+
+      const nick = document.createElement("span");
+      nick.className = "ac-nick max-w-full overflow-hidden text-ellipsis whitespace-nowrap text-[0.95rem] font-bold text-(--content-meta) [&_a:hover]:text-(--primary) group-[.is-admin]/comment:rounded-lg group-[.is-admin]/comment:border group-[.is-admin]/comment:border-[#1dbde87a] group-[.is-admin]/comment:bg-linear-to-r group-[.is-admin]/comment:from-[#c6f3ff] group-[.is-admin]/comment:via-white group-[.is-admin]/comment:to-[#c6f3ff] group-[.is-admin]/comment:px-1.5 group-[.is-admin]/comment:py-0.5 group-[.is-admin]/comment:text-[#08749e]";
+      if (comment.website) {
+        const link = document.createElement("a");
+        link.href = comment.website;
+        link.target = "_blank";
+        link.rel = "noopener nofollow ugc";
+        link.textContent = comment.nick;
+        nick.appendChild(link);
+      } else {
+        nick.textContent = comment.nick;
+      }
+
+      head.append(nick);
+
+      if (comment.is_admin) {
+        const badge = document.createElement("span");
+        badge.className = "ac-badge shrink-0 rounded-lg border border-[#1dbde87a] bg-[#c6f3ff] px-1.5 py-0.5 text-[0.65rem] font-bold text-[#08749e]";
+        badge.textContent = "博主";
+        head.appendChild(badge);
+      }
+
+      const time = document.createElement("time");
+      time.className = "ac-time whitespace-nowrap text-xs text-(--content-meta)";
+      time.dateTime = comment.created_at;
+      const elapsed = Math.max(0, Date.now() - new Date(comment.created_at).getTime());
+      time.textContent = elapsed < 60000 ? "刚刚" : elapsed < 3600000 ? `${Math.floor(elapsed / 60000)} 分钟前` : elapsed < 86400000 ? `${Math.floor(elapsed / 3600000)} 小时前` : elapsed < 604800000 ? `${Math.floor(elapsed / 86400000)} 天前` : formatDate(comment.created_at);
+      time.title = formatDate(comment.created_at, true);
+      head.append(time);
+
+      const actions = document.createElement("div");
+      actions.className = "ac-actions flex items-center gap-2";
+
+      const likeBtn = document.createElement("button");
+      likeBtn.type = "button";
+      likeBtn.className = "ac-icon-btn ac-like inline-flex min-h-7 cursor-pointer items-center gap-1 text-sm text-(--primary) [&_svg]:size-5 focus-visible:outline-2 focus-visible:outline-(--primary) [&.is-liked]:text-red-500 [&.is-liked_svg]:fill-current";
+      likeBtn.title = "点赞";
+      likeBtn.setAttribute("aria-label", "点赞");
+      likeBtn.classList.toggle("is-liked", comment.liked);
+      likeBtn.setAttribute("aria-pressed", String(comment.liked));
+      likeBtn.innerHTML = `${HEART_ICON}<span>${comment.likes}</span>`;
+      likeBtn.addEventListener("click", async () => {
+        if (likeBtn.dataset.busy === "true") return;
+        likeBtn.dataset.busy = "true";
+        try {
+          const result = await toggleCommentLike(comment.id);
+          comment.likes = result.likes;
+          comment.liked = result.liked;
+          likeBtn.classList.toggle("is-liked", result.liked);
+          likeBtn.setAttribute("aria-pressed", String(result.liked));
+          const count = likeBtn.querySelector("span");
+          if (count) count.textContent = String(result.likes);
+        } catch (error) {
+          showToast(error instanceof Error ? error.message : "点赞失败", true);
+        } finally {
+          likeBtn.dataset.busy = "false";
+        }
+      });
+      actions.appendChild(likeBtn);
+
+      const replyBtn = document.createElement("button");
+      replyBtn.type = "button";
+      replyBtn.className = "ac-icon-btn inline-flex min-h-7 cursor-pointer items-center gap-1 text-sm text-(--primary) [&_svg]:size-5 focus-visible:outline-2 focus-visible:outline-(--primary)";
+      replyBtn.title = "回复";
+      replyBtn.setAttribute("aria-label", "回复");
+      replyBtn.innerHTML = `${REPLY_ICON}<span>${node.children.length}</span>`;
+      actions.appendChild(replyBtn);
+
+      if (currentUser?.is_admin) {
+        const removeBtn = document.createElement("button");
+        removeBtn.type = "button";
+        removeBtn.className = "ac-delete cursor-pointer text-xs text-red-500 disabled:opacity-50";
+        removeBtn.textContent = "删除";
+        removeBtn.addEventListener("click", async () => {
+          if (!window.confirm("确定删除这条评论？其下的回复也会一并删除。")) return;
+          removeBtn.disabled = true;
+          try {
+            await apiFetch<void>(`/comments/${comment.id}`, { method: "DELETE" });
+            await loadComments();
+          } catch (error) {
+            removeBtn.disabled = false;
+            showToast(error instanceof Error ? error.message : "删除失败", true);
+          }
+        });
+        actions.appendChild(removeBtn);
+      }
+      head.appendChild(actions);
+
+      const text = document.createElement("p");
+      text.className = "ac-text relative flow-root mb-1 w-fit max-w-[min(90%,76ch)] rounded-[0.38rem_0.38rem_0.38rem_0.12rem] bg-[color-mix(in_oklab,#edf5ff_88%,var(--card-bg))] px-[0.86rem] pt-[0.68rem] pb-[0.76rem] text-sm leading-[1.84] whitespace-pre-wrap break-words [overflow-wrap:anywhere] text-[color-mix(in_oklab,var(--btn-content)_94%,#203750)] shadow-[0_0.42rem_1.05rem_-0.9rem_#86bfff38] before:absolute before:top-3 before:-left-1 before:size-2 before:rotate-45 before:bg-inherit before:content-[''] dark:bg-[color-mix(in_oklab,#324454_74%,var(--card-bg))] dark:text-[color-mix(in_oklab,var(--btn-content)_94%,#dcecff)] group-data-[side=right]/comment:ml-auto group-data-[side=right]/comment:rounded-[0.38rem_0.38rem_0.12rem_0.38rem] group-data-[side=right]/comment:before:left-auto group-data-[side=right]/comment:before:-right-1 group-[.is-admin]/comment:bg-[color-mix(in_oklab,#c6f3ff_64%,var(--card-bg))] group-[.is-admin]/comment:text-[#08749e] dark:group-[.is-admin]/comment:bg-[color-mix(in_oklab,#1dbde8_18%,var(--card-bg))] dark:group-[.is-admin]/comment:text-[#91d9ef] max-sm:max-w-[94%] max-sm:px-[0.68rem] max-sm:pt-[0.56rem] max-sm:pb-[0.62rem] max-sm:leading-[1.8]";
+      renderContent(text, comment.content);
+      if (comment.parent_id !== null) {
+        const parent = allComments.find((row) => row.id === comment.parent_id);
+        if (parent) {
+          const mention = document.createElement("span");
+          mention.className = "ac-mention mr-1.5 font-bold text-(--primary)";
+          mention.textContent = `@${parent.nick}`;
+          text.prepend(mention);
+        }
+      }
+
+      const metaText = [comment.region, describeUserAgent(comment.user_agent || "")]
+        .filter(Boolean)
+        .join(" · ");
+      const meta = document.createElement("div");
+      meta.className = "ac-meta mt-1 text-[0.7rem] leading-relaxed text-(--content-meta) group-data-[side=right]/comment:text-right";
+      meta.textContent = metaText;
+      meta.hidden = !metaText;
+
+      const adminReplied = collectDescendants(node.children).some((child) => child.comment.is_admin);
+      if (adminReplied) {
+        const badge = document.createElement("span");
+        badge.className = "ac-replied border-b border-dashed border-current bg-(--btn-regular-bg) px-1.5 py-0.5 text-xs text-(--primary)";
+        badge.textContent = "站长已回复";
+        head.appendChild(badge);
+      }
+      body.append(head, text, meta);
+      item.append(avatar, body);
+
+      replyBtn.addEventListener("click", () => {
+        if (openReply?.parentElement === body) {
+          closeReply();
+          return;
+        }
+        closeReply();
+        const replyForm = buildReplyForm(comment);
+        body.appendChild(replyForm);
+        openReply = replyForm;
+        replyForm.querySelector<HTMLTextAreaElement>('[name="content"]')?.focus();
+      });
+
+      return item;
+    };
+
+    /** 收集某个顶层评论下的全部回复（含回复的回复），统一平铺到第二层。 */
+    const collectDescendants = (nodes: CommentNode[]): CommentNode[] => {
+      const result: CommentNode[] = [];
+      const walk = (list: CommentNode[]) => {
+        for (const node of list) {
+          result.push(node);
+          walk(node.children);
+        }
+      };
+      walk(nodes);
+      return result;
+    };
+
+    const countDescendants = (node: CommentNode): number =>
+      node.children.reduce((sum, child) => sum + 1 + countDescendants(child), 0);
+
+    const renderNodes = (nodes: CommentNode[], container: HTMLElement) => {
+      for (const node of nodes) {
+        const item = createItem(node);
+        container.appendChild(item);
+        const descendants = collectDescendants(node.children);
+        if (descendants.length === 0) continue;
+        const body = item.querySelector(".ac-body");
+        const replies = document.createElement("ol");
+        replies.className = "ac-children m-0 mt-2 flex list-none flex-col p-0 [&>.ac-item]:border-0";
+        replies.appendChild(createItem(descendants[0]));
+        body?.appendChild(replies);
+        if (descendants.length === 1) continue;
+        const disclosure = document.createElement("details");
+        disclosure.className = "ac-replies group/replies mt-2";
+        const summary = document.createElement("summary");
+        summary.className = "mx-auto my-2 flex w-fit max-w-full cursor-pointer list-none items-center gap-2 rounded-[10px_7px_12px_8px] border border-dashed border-(--line-divider) px-2.5 py-1.5 text-xs font-bold text-(--content-meta) shadow-sm hover:text-(--primary) focus-visible:outline-2 focus-visible:outline-(--primary) after:size-1.5 after:rotate-45 after:border-r after:border-b group-open/replies:after:rotate-225 [&::-webkit-details-marker]:hidden";
+        const remaining = descendants.length - 1;
+        summary.textContent = `展开其余 ${remaining} 条回复`;
+        disclosure.addEventListener("toggle", () => {
+          summary.textContent = disclosure.open ? "收起回复" : `展开其余 ${remaining} 条回复`;
+        });
+        const children = document.createElement("ol");
+        children.className = "ac-children m-0 flex list-none flex-col p-0 [&>.ac-item]:border-0";
+        for (const child of descendants.slice(1)) children.appendChild(createItem(child));
+        disclosure.append(summary, children);
+        body?.appendChild(disclosure);
+      }
+    };
+
+    const buildTree = (comments: CommentRow[]): CommentNode[] => {
+      const nodes = new Map<number, CommentNode>();
+      for (const comment of comments) {
+        nodes.set(comment.id, { comment, children: [] });
+      }
+      const roots: CommentNode[] = [];
+      for (const comment of comments) {
+        const node = nodes.get(comment.id);
+        if (!node) continue;
+        const parent = comment.parent_id !== null ? nodes.get(comment.parent_id) : undefined;
+        if (parent) parent.children.push(node);
+        else roots.push(node);
+      }
+      return roots;
+    };
+
+    const renderList = () => {
+      if (!listEl) return;
+      closeReply();
+      listEl.textContent = "";
+      if (countEl) countEl.textContent = String(allComments.length);
+      if (allComments.length === 0) {
+        setStatus("暂无评论，来抢沙发吧");
+        return;
+      }
+      setStatus("");
+      const roots = buildTree(allComments);
+      if (sortMode === "desc") roots.reverse();
+      else if (sortMode === "hot") roots.sort((a, b) => (b.comment.likes + countDescendants(b)) - (a.comment.likes + countDescendants(a)));
+      renderNodes(roots, listEl);
+    };
+
+    const loadComments = async () => {
+      const version = ++loadVersion;
+      setStatus("评论加载中…");
+      const email = filterEmail || form?.querySelector<HTMLInputElement>('[name="email"]')?.value.trim() || readStorage(EMAIL_KEY);
+      try {
+        const comments = await apiFetch<CommentRow[]>(
+          `/comments?page=${encodeURIComponent(page)}${onlyMine ? "&mine=true" : ""}`,
+          { headers: onlyMine && !currentUser && email ? { "X-Comment-Email": email } : {} },
+        );
+        if (version !== loadVersion || !root.isConnected) return;
+        allComments = comments;
+        renderList();
+        if (onlyMine && !comments.length) setStatus("没有找到你的评论");
+      } catch (error) {
+        if (version !== loadVersion) return;
+        listEl?.replaceChildren();
+        setStatus(error instanceof Error ? error.message : "评论加载失败", true);
+      }
+    };
+
+    const applyMine = (active: boolean) => {
+      onlyMine = active;
+      mineBtn?.setAttribute("aria-pressed", String(active));
+      const label = mineBtn?.querySelector("[data-mine-label]");
+      if (label) label.textContent = active ? "显示全部评论" : "只看自己的评论";
+      const hint = root.querySelector("[data-filter-hint]");
+      if (hint) hint.textContent = active ? "正在显示你的评论" : "使用曾填写过的邮箱筛选";
+      if (filterForm) filterForm.hidden = true;
+      void loadComments();
+    };
+    mineBtn?.addEventListener("click", () => {
+      if (onlyMine) return applyMine(false);
+      if (currentUser) return applyMine(true);
+      if (filterForm && filterInput) {
+        filterForm.hidden = !filterForm.hidden;
+        filterInput.value = filterEmail || form?.querySelector<HTMLInputElement>('[name="email"]')?.value.trim() || readStorage(EMAIL_KEY);
+        if (!filterForm.hidden) filterInput.focus();
+      }
+    });
+    filterForm?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (!filterForm.reportValidity()) return;
+      filterEmail = filterInput?.value.trim() || "";
+      applyMine(true);
+    });
+    root.querySelector("[data-filter-cancel]")?.addEventListener("click", () => {
+      if (filterForm) filterForm.hidden = true;
+      mineBtn?.focus();
+    });
+    filterForm?.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        filterForm.hidden = true;
+        mineBtn?.focus();
+      }
+    });
+
+    /** 同步登录态与表单字段，并刷新列表（管理员按钮 / 头像可能变化）。 */
+    const refreshAuth = async () => {
+      try {
+        currentUser = await fetchMe();
+      } catch {
+        currentUser = null;
+      }
+      if (form) applyAuth(form);
+      root.querySelectorAll<HTMLElement>(".ac-reply-form").forEach((reply) => applyAuth(reply));
+      await loadComments();
+    };
+
+    form?.addEventListener("submit", (event) => {
+      event.preventDefault();
+      void submitComment(form, null);
+    });
+
+    contentInput?.addEventListener("input", () => {
+      if (counterEl) counterEl.textContent = String(contentInput.value.length);
+      if (previewEl && !previewEl.hidden) renderContent(previewEl, contentInput.value);
+    });
+
+    /** 在光标处插入文本，并同步字数与预览。 */
+    const insertAtCursor = (text: string) => {
+      if (!contentInput) return;
+      const start = contentInput.selectionStart ?? contentInput.value.length;
+      const end = contentInput.selectionEnd ?? contentInput.value.length;
+      contentInput.value =
+        contentInput.value.slice(0, start) + text + contentInput.value.slice(end);
+      const cursor = start + text.length;
+      contentInput.setSelectionRange(cursor, cursor);
+      contentInput.focus();
+      if (counterEl) counterEl.textContent = String(contentInput.value.length);
+      if (previewEl && !previewEl.hidden) renderContent(previewEl, contentInput.value);
+    };
+
+    /** 上传评论配图并插入 Markdown 图片语法。 */
+    const uploadAndInsert = async (file: File, label: string) => {
+      try {
+        const url = await uploadCommentImage(file);
+        insertAtCursor(`![${label}](${url})`);
+        showToast("图片已插入，提交后展示");
+      } catch (error) {
+        showToast(error instanceof Error ? error.message : "上传失败", true);
+      }
+    };
+
+    const pickFile = (accept: string, label: string) => {
+      const picker = document.createElement("input");
+      picker.type = "file";
+      picker.accept = accept;
+      picker.addEventListener("change", () => {
+        const file = picker.files?.[0];
+        if (file) void uploadAndInsert(file, label);
+      });
+      picker.click();
+    };
+
+    // 表情面板
+    if (emojiPanel) {
+      for (const emoji of EMOJIS) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "ac-emoji";
+        btn.textContent = emoji;
+        btn.addEventListener("click", () => insertAtCursor(emoji));
+        emojiPanel.appendChild(btn);
+      }
+    }
+    root.querySelector<HTMLButtonElement>("[data-emoji-btn]")?.addEventListener("click", (event) => {
+      event.stopPropagation();
+      if (emojiPanel) emojiPanel.hidden = !emojiPanel.hidden;
+    });
+    document.addEventListener("click", (event) => {
+      if (!emojiPanel || emojiPanel.hidden) return;
+      if (event.target instanceof Node && emojiPanel.contains(event.target)) return;
+      emojiPanel.hidden = true;
+    });
+    root.querySelector<HTMLButtonElement>("[data-gif-btn]")?.addEventListener("click", () => {
+      pickFile("image/gif", "GIF");
+    });
+    root
+      .querySelector<HTMLButtonElement>("[data-image-btn]")
+      ?.addEventListener("click", () => {
+        pickFile("image/png,image/jpeg,image/webp", "图片");
+      });
+    previewBtn?.addEventListener("click", () => {
+      if (!previewEl || !contentInput) return;
+      const show = previewEl.hidden;
+      if (show && !contentInput.value.trim()) {
+        showToast("先写点什么再预览", true);
+        return;
+      }
+      previewEl.hidden = !show;
+      previewBtn.classList.toggle("is-active", show);
+      if (show) renderContent(previewEl, contentInput.value);
+    });
+
+    for (const btn of sortBtns) {
+      btn.addEventListener("click", () => {
+        const mode = btn.dataset.sort as SortMode | undefined;
+        if (!mode || mode === sortMode) return;
+        sortMode = mode;
+        for (const other of sortBtns) {
+          other.classList.toggle("is-active", other === btn);
+        }
+        renderList();
+      });
+    }
+
+    // 回填上次使用的访客资料
+    if (form && guestFields) {
+      const nickInput = form.querySelector<HTMLInputElement>('[name="nick"]');
+      const emailInput = form.querySelector<HTMLInputElement>('[name="email"]');
+      const websiteInput = form.querySelector<HTMLInputElement>('[name="website"]');
+      if (nickInput) nickInput.value = readStorage(NICK_KEY);
+      if (emailInput) emailInput.value = readStorage(EMAIL_KEY);
+      if (websiteInput) websiteInput.value = readStorage(WEBSITE_KEY);
+    }
+
+    if (authHandler) window.removeEventListener("yukina:auth-changed", authHandler);
+    authHandler = () => {
+      void refreshAuth();
+    };
+    window.addEventListener("yukina:auth-changed", authHandler);
+
+    void refreshAuth();
+  };
+
+  initComments();
+  document.addEventListener("astro:page-load", initComments);
+  document.addEventListener("yukina:article-loaded", initComments);
+</script>
+
+<style is:global>
+  .yukina-comments {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+  }
+
+  .yukina-comments [hidden] {
+    display: none !important;
+  }
+
+  /* 编辑器卡片 */
+  .yukina-comments .ac-editor {
+    position: relative;
+    padding: 0.25rem 1rem 0.75rem;
+    border: 1px solid var(--line-divider);
+    border-radius: 0.75rem;
+    background: color-mix(in oklab, var(--card-bg) 76%, transparent);
+    box-shadow: none;
+  }
+
+  .yukina-comments .ac-identity {
+    padding: 0.6rem 0;
+    font-size: 0.8rem;
+    color: var(--content-meta);
+    border-bottom: 1px dashed var(--line-divider);
+  }
+
+  .yukina-comments .ac-identity strong {
+    color: var(--primary);
+  }
+
+  .yukina-comments .ac-guest-fields {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    border-bottom: 1px dashed var(--line-divider);
+  }
+
+  .yukina-comments .ac-field {
+    padding: 0.7rem 0.75rem;
+    border: none;
+    border-left: 1px solid var(--line-divider);
+    border-radius: 0;
+    background: transparent;
+    font-size: 0.85rem;
+  }
+
+  .yukina-comments .ac-field:first-child {
+    border-left: none;
+    padding-left: 0;
+  }
+
+  .yukina-comments .ac-form .ac-input {
+    width: 100%;
+    color: var(--btn-content);
+    outline: none;
+  }
+
+  .yukina-comments .ac-field::placeholder,
+  .yukina-comments .ac-textarea::placeholder {
+    color: var(--content-meta);
+  }
+
+  .yukina-comments .ac-field:focus {
+    box-shadow: none;
+  }
+
+  .yukina-comments .ac-textarea {
+    display: block;
+    min-height: 7.5rem;
+    padding: 0.85rem 0 0.5rem;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    resize: vertical;
+  }
+
+  .yukina-comments .ac-editor-foot {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.75rem;
+  }
+
+  .yukina-comments .ac-tools {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin-right: auto;
+  }
+
+  .yukina-comments .ac-tool {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.6rem;
+    height: 1.6rem;
+    border-radius: 0.3rem;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--content-meta);
+    cursor: pointer;
+    transition: color 0.15s ease;
+  }
+
+  .yukina-comments .ac-tool:hover,
+  .yukina-comments .ac-tool.is-active {
+    color: var(--primary);
+  }
+
+  .yukina-comments .ac-tool-gif {
+    border: 1px solid currentColor;
+    letter-spacing: 0.02em;
+  }
+
+  .yukina-comments .ac-emoji-panel {
+    position: absolute;
+    left: 1rem;
+    bottom: 3.1rem;
+    z-index: 20;
+    display: grid;
+    grid-template-columns: repeat(8, 2rem);
+    gap: 0.15rem;
+    padding: 0.5rem;
+    border: 1px solid var(--line-divider);
+    border-radius: 0.6rem;
+    background: var(--card-bg);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.14);
+  }
+
+  .yukina-comments .ac-emoji-panel[hidden] {
+    display: none !important;
+  }
+
+  .yukina-comments .ac-emoji {
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.35rem;
+    font-size: 1.1rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .yukina-comments .ac-emoji:hover {
+    background: var(--btn-regular-bg);
+  }
+
+  .yukina-comments .ac-preview {
+    min-height: 3rem;
+    margin: 0.25rem 0 0.75rem;
+    padding: 0.75rem;
+    border: 1px dashed var(--line-divider);
+    border-radius: 0.5rem;
+    font-size: 0.9rem;
+    line-height: 1.8;
+    color: var(--btn-content);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  .yukina-comments .ac-content-image {
+    display: block;
+    max-width: 100%;
+    max-height: 24rem;
+    margin: 0.5rem 0;
+    border-radius: 0.5rem;
+  }
+
+  /* 全局消息浮层 */
+  .ac-toast {
+    position: fixed;
+    top: 1.5rem;
+    left: 50%;
+    z-index: 9999;
+    padding: 0.55rem 1.1rem;
+    border-radius: 0.5rem;
+    font-size: 0.85rem;
+    color: #fff;
+    background: rgba(30, 30, 35, 0.92);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+    opacity: 0;
+    transform: translateX(-50%) translateY(-8px);
+    transition:
+      opacity 0.2s ease,
+      transform 0.2s ease;
+    pointer-events: none;
+  }
+
+  .ac-toast.is-visible {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  .ac-toast.is-error {
+    background: rgba(190, 40, 40, 0.95);
+  }
+
+  .yukina-comments .ac-counter {
+    font-size: 0.75rem;
+    color: var(--content-meta);
+    white-space: nowrap;
+  }
+
+  .yukina-comments .ac-login {
+    padding: 0.4rem 1rem;
+    border: 1px solid var(--line-divider);
+    border-radius: 0.4rem;
+    font-size: 0.85rem;
+    color: var(--btn-content);
+    background: transparent;
+    cursor: pointer;
+  }
+
+  .yukina-comments .ac-login:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .yukina-comments .ac-submit {
+    padding: 0.4rem 1.35rem;
+    border-radius: 0.4rem;
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: #fff;
+    background: var(--primary);
+    cursor: pointer;
+    transition: opacity 0.15s ease;
+  }
+
+  .yukina-comments .ac-submit:hover {
+    opacity: 0.85;
+  }
+
+  .yukina-comments .ac-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* 回复表单 */
+  .yukina-comments .ac-reply-form {
+    margin-top: 0.75rem;
+    padding: 0.75rem;
+    border-radius: 0.6rem;
+    background: var(--btn-regular-bg);
+  }
+
+  .yukina-comments .ac-reply-form .ac-textarea {
+    min-height: 4rem;
+    padding-top: 0.5rem;
+  }
+
+  .yukina-comments .ac-reply-form .ac-submit {
+    padding: 0.35rem 1.1rem;
+  }
+
+  .yukina-comments .ac-reply-form .ac-login {
+    padding: 0.35rem 0.9rem;
+  }
+
+  @media (max-width: 640px) {
+    .yukina-comments .ac-guest-fields {
+      grid-template-columns: 1fr;
+    }
+
+    .yukina-comments .ac-field {
+      border-left: none;
+      border-top: 1px dashed var(--line-divider);
+      padding-left: 0;
+    }
+
+    .yukina-comments .ac-field:first-child {
+      border-top: none;
+    }
+
+
+  }
+
+</style>

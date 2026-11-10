@@ -1,0 +1,74 @@
+@import "tailwindcss";
+
+/* 此入口只用于 /admin/，让既有组件也使用同一组低饱和水彩色。 */
+@theme {
+ --color-slate-50: #faf8f5;
+ --color-slate-100: #eeeef0;
+ --color-slate-200: #dce2e8;
+ --color-slate-300: #b8c9d7;
+ --color-slate-400: #60758b;
+ --color-slate-500: #5c7089;
+ --color-slate-600: #4b6380;
+ --color-slate-700: #3d5572;
+ --color-slate-800: #334d6b;
+ --color-slate-900: #2b405b;
+ --color-slate-950: #263c57;
+ --color-teal-50: #edf5f1;
+ --color-teal-600: #527e80;
+ --color-teal-700: #496f76;
+ --color-teal-800: #3c6269;
+ --color-indigo-50: #edf1f7;
+ --color-indigo-500: #6b89ac;
+ --color-indigo-600: #4a6fa5;
+ --color-indigo-700: #456691;
+ --color-red-50: #fbf0ee;
+ --color-red-500: #ad6676;
+ --color-red-600: #9b5265;
+ --color-red-700: #8c4559;
+ --color-rose-600: #9b5265;
+ --color-amber-50: #faf1e5;
+ --color-amber-700: #896539;
+ --color-amber-800: #7d5930;
+}
+
+@layer base {
+ body { @apply bg-[#faf8f5] font-serif text-[#334d6b]; }
+ button, select, summary, label:has(input[type="file"]) { @apply cursor-pointer; }
+ button:disabled, select:disabled { @apply cursor-not-allowed; }
+ button, a, select, input, textarea, article, section, tr {
+  @apply transition-all duration-500 ease-in-out;
+ }
+ button:not(:disabled):active, label:has(input[type="file"]):active { @apply scale-[0.98] shadow-inner; }
+ button:focus-visible, a:focus-visible, summary:focus-visible {
+  @apply outline-2 outline-offset-4 outline-[#4a6fa5];
+ }
+ input[type="checkbox"], input[type="radio"] { @apply accent-[#4a6fa5]; }
+ input, textarea, select { @apply selection:bg-[#85cdca]/35; }
+ h1, h2 { @apply font-serif font-normal italic tracking-wide; }
+ h1 { @apply text-[#3d5b80]; }
+ :where(button, a):not(:disabled):hover { @apply shadow-[0_6px_24px_rgba(74,111,165,0.18)]; }
+ tbody tr:hover { @apply bg-[#85cdca]/10; }
+ tbody td { @apply py-5; }
+ section { @apply rounded-3xl; }
+ section:hover { @apply border-[#4a6fa5]/25 shadow-[0_8px_32px_rgba(74,111,165,0.09)]; }
+ article { @apply rounded-3xl; }
+ article:hover { @apply border-[#85cdca]/60 bg-[#f4f7f2] shadow-[0_10px_40px_rgba(74,111,165,0.17)]; }
+ a:hover { @apply text-[#4a6fa5]; }
+ @media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { transition-duration: 0.01ms !important; animation-duration: 0.01ms !important; }
+  button:active, label:active { transform: none !important; }
+ }
+}
+
+/* Vditor 提供的 DOM 需要在统一入口中适配，保留编辑内容和代码块的正常字体。 */
+body .vditor {
+ @apply overflow-hidden rounded-3xl border-[#4a6fa5]/20 bg-[#faf8f5] shadow-[0_4px_20px_rgba(74,111,165,0.06)];
+}
+.vditor-toolbar {
+ @apply rounded-t-3xl border-b border-[#4a6fa5]/10 bg-linear-to-r from-[#85cdca]/15 via-[#faf8f5] to-[#e8a87c]/15 p-3;
+}
+.vditor-toolbar button { @apply rounded-xl text-[#4a6fa5] transition-all duration-500 ease-in-out; }
+.vditor-toolbar button:hover { @apply bg-[#85cdca]/25 shadow-[0_4px_20px_rgba(74,111,165,0.2)]; }
+.vditor-reset, .vditor-ir, .vditor-sv, .vditor-wysiwyg, .vditor-preview {
+ @apply bg-[#fffdfa] text-[#334d6b];
+}

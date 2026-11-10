@@ -9,7 +9,7 @@ export const homePortfolioIntroSettings = {
 	characterStorageKey: "rainzt.home-portfolio-intro-character.v1",
 	topBannerStorageKey: "rainzt.home-portfolio-intro-top-banner.v1",
 	bottomBannerStorageKey: "rainzt.home-portfolio-intro-bottom-banner.v1",
-	defaultEnabled: true,
+	defaultEnabled: false,
 	defaultCharacterId: "character-03",
 	defaultTopBannerId: "wuthering",
 	defaultBottomBannerId: "wuthering",

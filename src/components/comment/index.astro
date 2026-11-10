@@ -5,6 +5,7 @@ import { commentConfig } from "@/config/commentConfig";
 import Key from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import { removeFileExtension } from "@/utils/url-utils";
+import YukinaComments from "./YukinaComments.astro";
 import Artalk from "./Artalk.astro";
 import Disqus from "./Disqus.astro";
 import Giscus from "./Giscus.astro";
@@ -75,6 +76,7 @@ let commentService: string = commentConfig?.type || "none";
         {commentService === "giscus" && <Giscus />}
         {commentService === "disqus" && <Disqus identifier={slug} url={url} title={customTitle || postTitle || slug} />}
           {commentService === "artalk" && <Artalk path={path} />}
+        {commentService === "yukina" && <YukinaComments path={path} />}
         {commentService === "none" && (
           <div class="text-center py-8 text-(--content-meta)">
             <div class="w-16 h-16 mx-auto mb-4 rounded-full bg-(--btn-regular-bg) flex items-center justify-center">

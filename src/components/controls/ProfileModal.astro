@@ -1,0 +1,1385 @@
+---
+import { Icon } from "astro-icon/components";
+---
+
+<!--
+  个人信息弹窗：导航栏「个人信息」触发（yukina:open-profile-modal）。
+  显隐一律用 is-open / data-mode 控制，不依赖 Tailwind 的 .hidden，
+  避免组件样式与工具类级联顺序导致的“关不掉”问题。
+-->
+<div class="profile-modal" data-profile-modal data-mode="view" aria-hidden="true">
+	<div class="profile-modal__backdrop" data-profile-close></div>
+
+	<!-- 资料卡（查看模式） -->
+	<div class="profile-view" data-profile-view>
+		<div class="profile-view__cover">
+			<img data-pm-cover src="" alt="封面" />
+		</div>
+		<button type="button" class="profile-close" data-profile-close aria-label="关闭">
+			<Icon is:inline name="material-symbols:close-rounded" />
+		</button>
+
+		<div class="profile-view__hero">
+			<span class="profile-avatar">
+				<img data-pm-avatar src="" alt="头像" />
+				<span class="profile-avatar__fallback" data-pm-avatar-fallback></span>
+			</span>
+			<div class="profile-view__intro">
+				<div class="profile-view__name-row">
+					<h2 data-pm-name>—</h2>
+					<span class="profile-badge profile-badge--gender" data-pm-gender></span>
+					<span class="profile-badge profile-badge--age" data-pm-age></span>
+				</div>
+				<p class="profile-view__job" data-pm-job-wrap>
+					<Icon is:inline name="material-symbols:work" aria-hidden="true" />
+					<span data-pm-job></span>
+				</p>
+			</div>
+		</div>
+
+		<div class="profile-view__detail">
+			<aside class="profile-motto">
+				<span class="profile-motto__label">人生格言</span>
+				<p class="profile-motto__text" data-pm-motto>这个人很懒，什么都没写…</p>
+			</aside>
+			<ul class="profile-infos">
+				<li>
+					<Icon is:inline name="material-symbols:person-rounded" class="profile-infos__icon profile-infos__icon--account" aria-hidden="true" />
+					<span class="profile-infos__label">账号</span>
+					<span class="profile-infos__value" data-pm-username>—</span>
+				</li>
+				<li>
+					<Icon is:inline name="material-symbols:mail-rounded" class="profile-infos__icon profile-infos__icon--mail" aria-hidden="true" />
+					<span class="profile-infos__label">邮箱</span>
+					<span class="profile-infos__value" data-pm-email>未绑定</span>
+				</li>
+				<li>
+					<Icon is:inline name="material-symbols:cake-rounded" class="profile-infos__icon profile-infos__icon--cake" aria-hidden="true" />
+					<span class="profile-infos__label">生日</span>
+					<span class="profile-infos__value" data-pm-birthday>未填写</span>
+				</li>
+				<li>
+					<Icon is:inline name="material-symbols:edit-note-rounded" class="profile-infos__icon profile-infos__icon--bio" aria-hidden="true" />
+					<span class="profile-infos__label">描述</span>
+					<span class="profile-infos__value" data-pm-bio>这个人很懒，什么都没写…</span>
+				</li>
+				<li>
+					<Icon is:inline name="material-symbols:interests-rounded" class="profile-infos__icon profile-infos__icon--hobby" aria-hidden="true" />
+					<span class="profile-infos__label">爱好</span>
+					<span class="profile-infos__value" data-pm-hobbies>未填写</span>
+				</li>
+			</ul>
+		</div>
+
+		<button type="button" class="profile-edit-fab" data-profile-edit-open title="编辑个人信息" aria-label="编辑个人信息">
+			<Icon is:inline name="material-symbols:edit-rounded" />
+		</button>
+	</div>
+
+	<!-- 编辑个人信息（编辑模式） -->
+	<form class="profile-edit" data-profile-edit novalidate>
+		<header class="profile-edit__header">
+			<h2>编辑个人信息</h2>
+			<button type="button" class="profile-edit__close" data-profile-close aria-label="关闭">
+				<Icon is:inline name="material-symbols:close-rounded" />
+			</button>
+		</header>
+
+		<div class="profile-uploads">
+			<div class="profile-upload">
+				<span class="profile-upload__label">头像图片</span>
+				<label class="profile-upload__tile">
+					<img data-up-avatar src="" alt="头像预览" />
+					<span class="profile-upload__plus"><Icon is:inline name="material-symbols:add-rounded" /></span>
+					<input type="file" accept="image/*" data-up-avatar-input class="sr-only" />
+				</label>
+			</div>
+			<div class="profile-upload">
+				<span class="profile-upload__label">卡片图片</span>
+				<label class="profile-upload__tile">
+					<img data-up-cover src="" alt="封面预览" />
+					<span class="profile-upload__plus"><Icon is:inline name="material-symbols:add-rounded" /></span>
+					<input type="file" accept="image/*" data-up-cover-input class="sr-only" />
+				</label>
+			</div>
+		</div>
+
+		<div class="profile-form">
+			<label class="profile-form__field">
+				<span>昵称</span>
+				<input type="text" data-ed="nickname" maxlength="20" placeholder="请输入昵称" />
+			</label>
+			<div class="profile-form__field">
+				<span>性别</span>
+				<div class="profile-form__radios">
+					<label><input type="radio" name="pm-gender" value="male" />男</label>
+					<label><input type="radio" name="pm-gender" value="female" />女</label>
+				</div>
+			</div>
+			<label class="profile-form__field">
+				<span>生日</span>
+				<input type="date" data-ed="birthday" />
+			</label>
+			<label class="profile-form__field">
+				<span>职位</span>
+				<input type="text" data-ed="job" maxlength="40" placeholder="请输入职位" />
+			</label>
+			<label class="profile-form__field">
+				<span>爱好</span>
+				<textarea data-ed="hobbies" maxlength="100" rows="2" placeholder="请输入爱好"></textarea>
+			</label>
+			<label class="profile-form__field">
+				<span>格言</span>
+				<textarea data-ed="motto" maxlength="60" rows="2" placeholder="请输入格言"></textarea>
+			</label>
+			<label class="profile-form__field profile-form__field--wide">
+				<span>描述</span>
+				<textarea data-ed="bio" maxlength="200" rows="3" placeholder="请输入描述"></textarea>
+			</label>
+		</div>
+
+		<footer class="profile-edit__footer">
+			<p class="profile-edit__status" data-edit-status></p>
+			<button type="submit" class="profile-btn profile-btn--ok" data-profile-save>
+				<Icon is:inline name="material-symbols:check-circle-rounded" aria-hidden="true" />
+				<span>确定</span>
+			</button>
+			<button type="button" class="profile-btn profile-btn--cancel" data-profile-close>
+				<Icon is:inline name="material-symbols:cancel-rounded" aria-hidden="true" />
+				<span>取消</span>
+			</button>
+		</footer>
+	</form>
+</div>
+
+<!-- 裁剪弹窗（QQ 式：拖动 + 滚轮缩放） -->
+<div class="profile-cropper" data-cropper data-shape="circle" aria-hidden="true">
+	<div class="profile-cropper__backdrop" data-cropper-cancel></div>
+	<div class="profile-cropper__panel">
+		<header class="profile-cropper__header">
+			<h3 data-cropper-title>裁剪头像</h3>
+			<button type="button" class="profile-cropper__close" data-cropper-cancel aria-label="取消裁剪">
+				<Icon is:inline name="material-symbols:close-rounded" />
+			</button>
+		</header>
+		<div class="profile-cropper__stage" data-cropper-stage>
+			<img data-cropper-img src="" alt="" draggable="false" />
+			<div class="profile-cropper__mask" aria-hidden="true"></div>
+		</div>
+		<p class="profile-cropper__hint">拖动调整位置，滚轮缩放</p>
+		<footer class="profile-cropper__footer">
+			<button type="button" class="profile-btn profile-btn--cancel" data-cropper-cancel>
+				<Icon is:inline name="material-symbols:cancel-rounded" aria-hidden="true" />
+				<span>取消</span>
+			</button>
+			<button type="button" class="profile-btn profile-btn--ok" data-cropper-confirm>
+				<Icon is:inline name="material-symbols:check-circle-rounded" aria-hidden="true" />
+				<span>确认</span>
+			</button>
+		</footer>
+	</div>
+</div>
+
+<script>
+	import {
+		ApiError,
+		fetchMe,
+		getAccessToken,
+		updateProfile,
+		uploadProfileImage,
+		type AuthUser,
+	} from "@/utils/api-client";
+
+	const GENDER_TEXT: Record<string, string> = { male: "男", female: "女" };
+
+	/** 由生日推算年龄文案。 */
+	const ageOf = (birthday: string | null): string => {
+		if (!birthday) return "";
+		const born = new Date(birthday);
+		if (Number.isNaN(born.getTime())) return "";
+		const now = new Date();
+		let age = now.getFullYear() - born.getFullYear();
+		const monthDiff = now.getMonth() - born.getMonth();
+		if (monthDiff < 0 || (monthDiff === 0 && now.getDate() < born.getDate())) {
+			age -= 1;
+		}
+		return age >= 0 ? String(age) : "";
+	};
+
+	const initProfileModal = () => {
+		const modal = document.querySelector<HTMLElement>("[data-profile-modal]");
+		if (!modal || modal.dataset.bound === "true") return;
+		modal.dataset.bound = "true";
+
+		const avatarImg = modal.querySelector<HTMLImageElement>("[data-pm-avatar]");
+		const avatarFallback = modal.querySelector<HTMLElement>("[data-pm-avatar-fallback]");
+		const coverImg = modal.querySelector<HTMLImageElement>("[data-pm-cover]");
+		const nameEl = modal.querySelector<HTMLElement>("[data-pm-name]");
+		const genderBadge = modal.querySelector<HTMLElement>("[data-pm-gender]");
+		const ageBadge = modal.querySelector<HTMLElement>("[data-pm-age]");
+		const jobWrap = modal.querySelector<HTMLElement>("[data-pm-job-wrap]");
+		const jobEl = modal.querySelector<HTMLElement>("[data-pm-job]");
+		const mottoEl = modal.querySelector<HTMLElement>("[data-pm-motto]");
+		const infoEls = {
+			username: modal.querySelector<HTMLElement>("[data-pm-username]"),
+			email: modal.querySelector<HTMLElement>("[data-pm-email]"),
+			birthday: modal.querySelector<HTMLElement>("[data-pm-birthday]"),
+			bio: modal.querySelector<HTMLElement>("[data-pm-bio]"),
+			hobbies: modal.querySelector<HTMLElement>("[data-pm-hobbies]"),
+		};
+
+		const form = modal.querySelector<HTMLFormElement>("[data-profile-edit]");
+		const statusEl = modal.querySelector<HTMLElement>("[data-edit-status]");
+		const saveBtn = modal.querySelector<HTMLButtonElement>("[data-profile-save]");
+		const edField = (name: string) =>
+			form?.querySelector<HTMLInputElement | HTMLTextAreaElement>(`[data-ed="${name}"]`);
+
+		const upAvatarImg = modal.querySelector<HTMLImageElement>("[data-up-avatar]");
+		const upCoverImg = modal.querySelector<HTMLImageElement>("[data-up-cover]");
+		const upAvatarInput = modal.querySelector<HTMLInputElement>("[data-up-avatar-input]");
+		const upCoverInput = modal.querySelector<HTMLInputElement>("[data-up-cover-input]");
+
+		let user: AuthUser | null = null;
+
+		const setMode = (mode: "view" | "edit") => {
+			modal.dataset.mode = mode;
+		};
+
+		const close = () => {
+			modal.classList.remove("is-open");
+			modal.setAttribute("aria-hidden", "true");
+		};
+
+		const open = () => {
+			modal.classList.add("is-open");
+			modal.setAttribute("aria-hidden", "false");
+			setMode("view");
+			void refresh();
+		};
+
+		const renderView = () => {
+			if (!user) return;
+			const name = user.nickname || user.username;
+
+			if (avatarImg) {
+				avatarImg.src = user.avatar_url ?? "";
+				avatarImg.classList.toggle("is-visible", Boolean(user.avatar_url));
+			}
+			if (avatarFallback) {
+				avatarFallback.textContent = user.avatar_url
+					? ""
+					: (Array.from(name)[0]?.toUpperCase() ?? "?");
+				avatarFallback.classList.toggle("is-visible", !user.avatar_url);
+			}
+			if (coverImg) {
+				coverImg.src = user.cover_url ?? "";
+				coverImg.classList.toggle("is-visible", Boolean(user.cover_url));
+			}
+			if (nameEl) nameEl.textContent = name;
+
+			if (genderBadge) {
+				const gender = user.gender && GENDER_TEXT[user.gender] ? user.gender : "";
+				genderBadge.textContent = gender
+					? `${gender === "male" ? "♂" : "♀"} ${GENDER_TEXT[gender]}`
+					: "";
+				if (gender) genderBadge.dataset.g = gender;
+				genderBadge.classList.toggle("is-visible", Boolean(gender));
+			}
+			if (ageBadge) {
+				const age = ageOf(user.birthday);
+				ageBadge.textContent = age ? `${age}` : "";
+				ageBadge.classList.toggle("is-visible", Boolean(age));
+			}
+			if (jobWrap) jobWrap.classList.toggle("is-visible", Boolean(user.job));
+			if (jobEl) jobEl.textContent = user.job ?? "";
+
+			if (mottoEl) mottoEl.textContent = user.motto || "这个人很懒，什么都没写…";
+			if (infoEls.username) infoEls.username.textContent = user.username;
+			if (infoEls.email) infoEls.email.textContent = user.email || "未绑定";
+			if (infoEls.birthday) infoEls.birthday.textContent = user.birthday || "未填写";
+			if (infoEls.bio) infoEls.bio.textContent = user.bio || "这个人很懒，什么都没写…";
+			if (infoEls.hobbies) infoEls.hobbies.textContent = user.hobbies || "未填写";
+		};
+
+		const refresh = async () => {
+			if (!getAccessToken()) {
+				close();
+				return;
+			}
+			try {
+				user = await fetchMe();
+			} catch (error) {
+				if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
+					close();
+					return;
+				}
+				close();
+				return;
+			}
+			renderView();
+		};
+
+		const setTilePreview = (kind: "avatar" | "cover", url: string) => {
+			const img = kind === "avatar" ? upAvatarImg : upCoverImg;
+			if (!img) return;
+			img.src = url;
+			img.classList.toggle("is-visible", Boolean(url));
+		};
+
+		const openEdit = () => {
+			if (!user || !form) return;
+			const fill = (name: string, value: string) => {
+				const el = edField(name);
+				if (el) el.value = value;
+			};
+			fill("nickname", user.nickname ?? "");
+			fill("birthday", user.birthday ?? "");
+			fill("job", user.job ?? "");
+			fill("hobbies", user.hobbies ?? "");
+			fill("motto", user.motto ?? "");
+			fill("bio", user.bio ?? "");
+
+			for (const radio of form.querySelectorAll<HTMLInputElement>('input[name="pm-gender"]')) {
+				radio.checked = radio.value === (user.gender ?? "");
+			}
+
+			setTilePreview("avatar", user.avatar_url ?? "");
+			setTilePreview("cover", user.cover_url ?? "");
+			if (statusEl) statusEl.textContent = "";
+			setMode("edit");
+		};
+
+		// ===== 裁剪弹窗（QQ 式：拖动平移 + 滚轮缩放，canvas 生成结果） =====
+
+		type CropKind = "avatar" | "cover";
+
+		const cropper = document.querySelector<HTMLElement>("[data-cropper]");
+		const cropperStage = cropper?.querySelector<HTMLElement>("[data-cropper-stage]");
+		const cropperImg = cropper?.querySelector<HTMLImageElement>("[data-cropper-img]");
+		const cropperTitle = cropper?.querySelector<HTMLElement>("[data-cropper-title]");
+
+		/** 裁剪输出尺寸（与后端重编码目标一致，等比无二次裁剪）。 */
+		const OUTPUT_SIZE: Record<CropKind, { w: number; h: number }> = {
+			avatar: { w: 256, h: 256 },
+			cover: { w: 1200, h: 400 },
+		};
+		const MAX_ZOOM = 8;
+
+		type CropSession = {
+			kind: CropKind;
+			resolve: (blob: Blob | null) => void;
+			objectUrl: string;
+			scale: number;
+			minScale: number;
+			tx: number;
+			ty: number;
+			naturalWidth: number;
+			naturalHeight: number;
+			dragging: boolean;
+			pointerId: number | null;
+			lastX: number;
+			lastY: number;
+		};
+		let cropSession: CropSession | null = null;
+
+		/** 裁剪框实际尺寸（CSS 响应式，运行时读取）。 */
+		const stageBox = () => ({
+			w: cropperStage?.clientWidth ?? 0,
+			h: cropperStage?.clientHeight ?? 0,
+		});
+
+		const clampOffset = (session: CropSession) => {
+			const { w, h } = stageBox();
+			const shownW = session.naturalWidth * session.scale;
+			const shownH = session.naturalHeight * session.scale;
+			session.tx = Math.min(0, Math.max(w - shownW, session.tx));
+			session.ty = Math.min(0, Math.max(h - shownH, session.ty));
+		};
+
+		const applyTransform = (session: CropSession) => {
+			if (!cropperImg) return;
+			cropperImg.style.transform = `translate(${session.tx}px, ${session.ty}px) scale(${session.scale})`;
+		};
+
+		/** 打开裁剪弹窗；确认返回裁剪结果 Blob，取消返回 null。 */
+		const openCropper = (kind: CropKind, file: File): Promise<Blob | null> =>
+			new Promise((resolve) => {
+				if (!cropper || !cropperImg || !cropperStage) {
+					resolve(null);
+					return;
+				}
+				const objectUrl = URL.createObjectURL(file);
+				cropperImg.onload = () => {
+					if (!cropperImg.naturalWidth) {
+						URL.revokeObjectURL(objectUrl);
+						resolve(null);
+						return;
+					}
+					if (cropperTitle) {
+						cropperTitle.textContent = kind === "avatar" ? "裁剪头像" : "裁剪卡片图片";
+					}
+					cropper.dataset.shape = kind === "avatar" ? "circle" : "rect";
+					// 先显示再量尺寸：display:none 下 clientWidth 恒为 0
+					cropper.classList.add("is-open");
+					cropper.setAttribute("aria-hidden", "false");
+					const { w, h } = stageBox();
+					if (!w || !h) {
+						URL.revokeObjectURL(objectUrl);
+						cropper.classList.remove("is-open");
+						cropper.setAttribute("aria-hidden", "true");
+						resolve(null);
+						return;
+					}
+					const minScale = Math.max(w / cropperImg.naturalWidth, h / cropperImg.naturalHeight);
+					cropSession = {
+						kind,
+						resolve,
+						objectUrl,
+						minScale,
+						scale: minScale,
+						tx: (w - cropperImg.naturalWidth * minScale) / 2,
+						ty: (h - cropperImg.naturalHeight * minScale) / 2,
+						naturalWidth: cropperImg.naturalWidth,
+						naturalHeight: cropperImg.naturalHeight,
+						dragging: false,
+						pointerId: null,
+						lastX: 0,
+						lastY: 0,
+					};
+					applyTransform(cropSession);
+				};
+				cropperImg.onerror = () => {
+					URL.revokeObjectURL(objectUrl);
+					resolve(null);
+				};
+				cropperImg.src = objectUrl;
+			});
+
+		/** 结束裁剪会话并交付结果。 */
+		const finishCrop = (result: Blob | null) => {
+			const session = cropSession;
+			if (!session || !cropper) return;
+			cropSession = null;
+			cropper.classList.remove("is-open");
+			cropper.setAttribute("aria-hidden", "true");
+			URL.revokeObjectURL(session.objectUrl);
+			session.resolve(result);
+		};
+
+		/** 按当前可视区域裁出结果。 */
+		const confirmCrop = () => {
+			const session = cropSession;
+			if (!session || !cropperImg) {
+				finishCrop(null);
+				return;
+			}
+			const out = OUTPUT_SIZE[session.kind];
+			const { w, h } = stageBox();
+			const canvas = document.createElement("canvas");
+			canvas.width = out.w;
+			canvas.height = out.h;
+			const ctx = canvas.getContext("2d");
+			if (!ctx) {
+				finishCrop(null);
+				return;
+			}
+			ctx.imageSmoothingEnabled = true;
+			ctx.imageSmoothingQuality = "high";
+			// stage 可视区（0,0,w,h）映射回源图坐标
+			const sx = -session.tx / session.scale;
+			const sy = -session.ty / session.scale;
+			const sw = w / session.scale;
+			const sh = h / session.scale;
+			ctx.drawImage(cropperImg, sx, sy, sw, sh, 0, 0, out.w, out.h);
+			canvas.toBlob((blob) => finishCrop(blob), "image/jpeg", 0.92);
+		};
+
+		cropper?.addEventListener("click", (event) => {
+			if (!(event.target instanceof Element)) return;
+			if (event.target.closest("[data-cropper-cancel]")) {
+				event.preventDefault();
+				finishCrop(null);
+				return;
+			}
+			if (event.target.closest("[data-cropper-confirm]")) {
+				confirmCrop();
+			}
+		});
+
+		cropperStage?.addEventListener("pointerdown", (event) => {
+			const session = cropSession;
+			if (!session || !cropperStage) return;
+			session.dragging = true;
+			session.pointerId = event.pointerId;
+			session.lastX = event.clientX;
+			session.lastY = event.clientY;
+			cropperStage.setPointerCapture(event.pointerId);
+		});
+		cropperStage?.addEventListener("pointermove", (event) => {
+			const session = cropSession;
+			if (!session || !session.dragging || event.pointerId !== session.pointerId) return;
+			session.tx += event.clientX - session.lastX;
+			session.ty += event.clientY - session.lastY;
+			session.lastX = event.clientX;
+			session.lastY = event.clientY;
+			clampOffset(session);
+			applyTransform(session);
+		});
+		const endDrag = (event: PointerEvent) => {
+			const session = cropSession;
+			if (!session || event.pointerId !== session.pointerId) return;
+			session.dragging = false;
+			session.pointerId = null;
+		};
+		cropperStage?.addEventListener("pointerup", endDrag);
+		cropperStage?.addEventListener("pointercancel", endDrag);
+
+		cropperStage?.addEventListener(
+			"wheel",
+			(event) => {
+				const session = cropSession;
+				if (!session) return;
+				event.preventDefault();
+				const factor = Math.exp(-event.deltaY * 0.0015);
+				const next = Math.min(
+					session.minScale * MAX_ZOOM,
+					Math.max(session.minScale, session.scale * factor),
+				);
+				if (next === session.scale) return;
+				// 以裁剪框中心为锚缩放，保持中心内容不动
+				const { w, h } = stageBox();
+				const anchorX = (w / 2 - session.tx) / session.scale;
+				const anchorY = (h / 2 - session.ty) / session.scale;
+				session.scale = next;
+				session.tx = w / 2 - anchorX * next;
+				session.ty = h / 2 - anchorY * next;
+				clampOffset(session);
+				applyTransform(session);
+			},
+			{ passive: false },
+		);
+
+		const handleUpload = async (kind: CropKind, input: HTMLInputElement | null) => {
+			const file = input?.files?.[0];
+			if (!file || !user) return;
+			if (file.size > 8 * 1024 * 1024) {
+				if (statusEl) statusEl.textContent = "图片不能超过 8 MB";
+				input.value = "";
+				return;
+			}
+			if (input) input.value = "";
+
+			// 先裁剪，再上传裁剪结果
+			const blob = await openCropper(kind, file);
+			if (!blob) return;
+			if (statusEl) statusEl.textContent = "图片上传中…";
+			try {
+				const url = await uploadProfileImage(kind, blob);
+				user = { ...user, [kind === "avatar" ? "avatar_url" : "cover_url"]: url };
+				setTilePreview(kind, url);
+				renderView();
+				// 同步导航栏头像
+				window.dispatchEvent(new CustomEvent("yukina:auth-changed"));
+				if (statusEl) statusEl.textContent = "图片已更新";
+			} catch (error) {
+				if (statusEl) {
+					statusEl.textContent = error instanceof Error ? error.message : "图片上传失败";
+				}
+			}
+		};
+
+		modal.addEventListener("click", (event) => {
+			if (!(event.target instanceof Element)) return;
+			if (event.target.closest("[data-profile-close]")) {
+				event.preventDefault();
+				close();
+				return;
+			}
+			if (event.target.closest("[data-profile-edit-open]")) {
+				openEdit();
+			}
+		});
+
+		document.addEventListener("keydown", (event) => {
+			if (event.key !== "Escape") return;
+			// Esc 优先关闭裁剪层，其次关闭资料弹窗
+			if (cropSession) {
+				finishCrop(null);
+				return;
+			}
+			if (modal.classList.contains("is-open")) {
+				close();
+			}
+		});
+
+		form?.addEventListener("submit", async (event) => {
+			event.preventDefault();
+			if (!user) return;
+			if (saveBtn) saveBtn.disabled = true;
+			try {
+				const gender =
+					form.querySelector<HTMLInputElement>('input[name="pm-gender"]:checked')?.value ?? "";
+				const updated = await updateProfile({
+					nickname: edField("nickname")?.value.trim() ?? "",
+					gender,
+					birthday: edField("birthday")?.value ?? "",
+					job: edField("job")?.value.trim() ?? "",
+					hobbies: edField("hobbies")?.value.trim() ?? "",
+					motto: edField("motto")?.value.trim() ?? "",
+					bio: edField("bio")?.value.trim() ?? "",
+				});
+				user = updated;
+				renderView();
+				window.dispatchEvent(new CustomEvent("yukina:auth-changed"));
+				setMode("view");
+			} catch (error) {
+				if (statusEl) {
+					statusEl.textContent = error instanceof Error ? error.message : "保存失败，请稍后重试";
+				}
+			} finally {
+				if (saveBtn) saveBtn.disabled = false;
+			}
+		});
+
+		upAvatarInput?.addEventListener("change", () => {
+			void handleUpload("avatar", upAvatarInput);
+		});
+		upCoverInput?.addEventListener("change", () => {
+			void handleUpload("cover", upCoverInput);
+		});
+
+		window.addEventListener("yukina:open-profile-modal", open);
+
+		window.addEventListener("yukina:auth-changed", () => {
+			// 退出登录后若弹窗仍开着则关闭；其余场景刷新数据
+			if (!getAccessToken()) {
+				close();
+				return;
+			}
+			if (modal.classList.contains("is-open")) {
+				void refresh();
+			}
+		});
+	};
+
+	initProfileModal();
+	document.addEventListener("astro:page-load", initProfileModal);
+</script>
+
+<style>
+	.profile-modal {
+		position: fixed;
+		inset: 0;
+		z-index: 200;
+		display: none;
+		place-items: center;
+		padding: 1rem;
+	}
+
+	.profile-modal.is-open {
+		display: grid;
+	}
+
+	.profile-modal__backdrop {
+		position: absolute;
+		inset: 0;
+		background: rgb(0 0 0 / 45%);
+		backdrop-filter: blur(3px);
+	}
+
+	/* ===== 资料卡（查看） ===== */
+
+	.profile-view {
+		display: none;
+		position: relative;
+		width: min(34rem, 100%);
+		max-height: calc(100vh - 2rem);
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		border-radius: 1rem;
+		background: var(--card-bg);
+		box-shadow: 0 1.2rem 3rem rgb(0 0 0 / 28%);
+	}
+
+	.profile-modal[data-mode="view"] .profile-view {
+		display: block;
+	}
+
+	.profile-view__cover {
+		position: relative;
+		height: 13rem;
+		background:
+			radial-gradient(circle at 20% 25%, color-mix(in srgb, var(--primary) 30%, transparent), transparent 60%),
+			linear-gradient(135deg, color-mix(in srgb, var(--primary) 22%, var(--card-bg)), var(--card-bg));
+	}
+
+	.profile-view__cover img {
+		display: none;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.profile-view__cover img.is-visible {
+		display: block;
+	}
+
+	.profile-view__cover::after {
+		content: "";
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		background: linear-gradient(180deg, transparent 55%, color-mix(in srgb, var(--card-bg) 92%, transparent));
+	}
+
+	.profile-close {
+		position: absolute;
+		top: 0.7rem;
+		right: 0.7rem;
+		z-index: 2;
+		display: grid;
+		place-items: center;
+		width: 2.2rem;
+		height: 2.2rem;
+		border: none;
+		border-radius: 999px;
+		background: rgb(255 255 255 / 80%);
+		color: #334155;
+		font-size: 1.1rem;
+		cursor: pointer;
+		transition: background-color 160ms ease, transform 160ms ease;
+	}
+
+	.profile-close:hover {
+		background: rgb(255 255 255 / 95%);
+		transform: rotate(90deg);
+	}
+
+	.profile-view__hero {
+		display: flex;
+		align-items: flex-end;
+		gap: 1.1rem;
+		padding: 0 1.4rem;
+		margin-top: -3.1rem;
+	}
+
+	.profile-avatar {
+		position: relative;
+		display: block;
+		width: 7rem;
+		height: 7rem;
+		flex: 0 0 auto;
+		overflow: hidden;
+		border: 3px solid var(--card-bg);
+		border-radius: 50%;
+		background: color-mix(in srgb, var(--primary) 16%, var(--card-bg));
+		box-shadow: 0 0.5rem 1.2rem rgb(0 0 0 / 20%);
+	}
+
+	.profile-avatar img {
+		display: none;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.profile-avatar img.is-visible {
+		display: block;
+	}
+
+	.profile-avatar__fallback {
+		display: none;
+		position: absolute;
+		inset: 0;
+		place-items: center;
+		color: color-mix(in srgb, var(--primary) 85%, var(--text-color));
+		font-size: 2.2rem;
+		font-weight: 800;
+	}
+
+	.profile-avatar__fallback.is-visible {
+		display: grid;
+	}
+
+	.profile-view__intro {
+		min-width: 0;
+		padding-bottom: 0.5rem;
+	}
+
+	.profile-view__name-row {
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.4rem;
+	}
+
+	.profile-view__name-row h2 {
+		margin: 0;
+		color: var(--text-color);
+		font-size: 1.45rem;
+		font-weight: 800;
+		letter-spacing: -0.02em;
+		line-height: 1.2;
+		word-break: break-word;
+	}
+
+	.profile-badge {
+		display: none;
+		align-items: center;
+		padding: 0.05rem 0.45rem;
+		border-radius: 0.45rem;
+		color: #fff;
+		font-size: 0.7rem;
+		font-weight: 700;
+		line-height: 1.5;
+	}
+
+	.profile-badge.is-visible {
+		display: inline-flex;
+	}
+
+	.profile-badge--gender[data-g="female"] {
+		background: #f472b6;
+	}
+
+	.profile-badge--gender[data-g="male"] {
+		background: #60a5fa;
+	}
+
+	.profile-badge--age {
+		background: #4ade80;
+		color: #14532d;
+	}
+
+	.profile-view__job {
+		display: none;
+		align-items: center;
+		gap: 0.35rem;
+		margin: 0.3rem 0 0;
+		color: var(--content-meta);
+		font-size: 0.85rem;
+		font-weight: 650;
+	}
+
+	.profile-view__job.is-visible {
+		display: flex;
+	}
+
+	.profile-view__job :global(svg) {
+		color: var(--primary);
+		font-size: 1rem;
+	}
+
+	.profile-view__detail {
+		display: flex;
+		align-items: stretch;
+		gap: 1.2rem;
+		padding: 1.2rem 1.4rem 1.5rem;
+	}
+
+	.profile-motto {
+		display: flex;
+		flex: 0 0 6.5rem;
+		gap: 0.55rem;
+		padding-right: 1rem;
+		border-right: 1px dashed color-mix(in srgb, var(--primary) 30%, var(--line-divider));
+	}
+
+	.profile-motto__label {
+		writing-mode: vertical-rl;
+		color: var(--text-color);
+		font-size: 1.05rem;
+		font-weight: 800;
+		letter-spacing: 0.3em;
+	}
+
+	.profile-motto__text {
+		margin: 0;
+		color: var(--content-meta);
+		font-size: 0.78rem;
+		line-height: 1.8;
+		display: -webkit-box;
+		-webkit-box-orient: vertical;
+		-webkit-line-clamp: 6;
+		overflow: hidden;
+	}
+
+	.profile-infos {
+		flex: 1;
+		min-width: 0;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.profile-infos li {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5rem;
+		padding: 0.3rem 0;
+	}
+
+	.profile-infos__icon {
+		flex: 0 0 auto;
+		align-self: center;
+		font-size: 1.05rem;
+	}
+
+	.profile-infos__icon--account {
+		color: #a855f7;
+	}
+
+	.profile-infos__icon--mail {
+		color: #3b82f6;
+	}
+
+	.profile-infos__icon--cake {
+		color: #f59e0b;
+	}
+
+	.profile-infos__icon--bio {
+		color: #14b8a6;
+	}
+
+	.profile-infos__icon--hobby {
+		color: #ec4899;
+	}
+
+	.profile-infos__label {
+		flex: 0 0 2.2em;
+		color: var(--content-meta);
+		font-size: 0.78rem;
+		font-weight: 650;
+	}
+
+	.profile-infos__value {
+		min-width: 0;
+		color: var(--text-color);
+		font-size: 0.82rem;
+		font-weight: 600;
+		line-height: 1.6;
+		word-break: break-word;
+	}
+
+	.profile-edit-fab {
+		position: absolute;
+		right: 1.2rem;
+		bottom: 1.2rem;
+		display: grid;
+		place-items: center;
+		width: 2.7rem;
+		height: 2.7rem;
+		border: none;
+		border-radius: 999px;
+		background: var(--primary);
+		color: #fff;
+		font-size: 1.25rem;
+		cursor: pointer;
+		box-shadow: 0 0.4rem 1rem color-mix(in srgb, var(--primary) 45%, transparent);
+		transition: transform 160ms ease, filter 160ms ease;
+	}
+
+	.profile-edit-fab:hover {
+		transform: translateY(-2px) rotate(-8deg);
+		filter: brightness(1.08);
+	}
+
+	/* ===== 编辑个人信息 ===== */
+
+	.profile-edit {
+		display: none;
+		position: relative;
+		width: min(34rem, 100%);
+		max-height: calc(100vh - 2rem);
+		overflow-y: auto;
+		overscroll-behavior: contain;
+		border-radius: 1rem;
+		background: var(--card-bg);
+		box-shadow: 0 1.2rem 3rem rgb(0 0 0 / 28%);
+	}
+
+	.profile-modal[data-mode="edit"] .profile-edit {
+		display: grid;
+		gap: 0.9rem;
+		padding: 1.1rem 1.3rem 1.3rem;
+	}
+
+	.profile-edit__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
+	.profile-edit__header h2 {
+		margin: 0;
+		color: var(--text-color);
+		font-size: 1.1rem;
+		font-weight: 800;
+	}
+
+	.profile-edit__close {
+		display: grid;
+		place-items: center;
+		width: 2rem;
+		height: 2rem;
+		border: none;
+		border-radius: 999px;
+		background: transparent;
+		color: var(--content-meta);
+		font-size: 1.15rem;
+		cursor: pointer;
+	}
+
+	.profile-edit__close:hover {
+		background: var(--btn-regular-bg);
+		color: var(--text-color);
+	}
+
+	.profile-uploads {
+		display: flex;
+		justify-content: space-evenly;
+		gap: 1rem;
+		padding: 0.2rem 0;
+	}
+
+	.profile-upload {
+		display: flex;
+		align-items: center;
+		gap: 0.7rem;
+	}
+
+	.profile-upload__label {
+		writing-mode: vertical-rl;
+		color: var(--text-color);
+		font-size: 0.85rem;
+		font-weight: 700;
+		letter-spacing: 0.25em;
+	}
+
+	.profile-upload__tile {
+		position: relative;
+		display: grid;
+		place-items: center;
+		width: 5.4rem;
+		height: 5.4rem;
+		border: 2px dashed color-mix(in srgb, var(--primary) 40%, var(--line-divider));
+		border-radius: 0.6rem;
+		background: color-mix(in srgb, var(--primary) 5%, var(--card-bg));
+		cursor: pointer;
+		overflow: hidden;
+		transition: border-color 160ms ease, background-color 160ms ease;
+	}
+
+	.profile-upload__tile:hover {
+		border-color: var(--primary);
+		background: color-mix(in srgb, var(--primary) 12%, var(--card-bg));
+	}
+
+	.profile-upload__tile img {
+		display: none;
+		position: absolute;
+		inset: 0;
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.profile-upload__tile img.is-visible {
+		display: block;
+	}
+
+	.profile-upload__plus {
+		color: color-mix(in srgb, var(--primary) 70%, var(--content-meta));
+		font-size: 2.4rem;
+		line-height: 1;
+	}
+
+	.profile-upload__tile img.is-visible + .profile-upload__plus {
+		display: none;
+	}
+
+	.profile-form {
+		display: grid;
+		grid-template-columns: repeat(2, minmax(0, 1fr));
+		gap: 0.7rem 1.1rem;
+	}
+
+	.profile-form__field {
+		display: grid;
+		grid-template-columns: 2.6em 1fr;
+		align-items: center;
+		gap: 0.5rem;
+		min-width: 0;
+	}
+
+	.profile-form__field--wide {
+		grid-column: 1 / -1;
+		align-items: start;
+	}
+
+	.profile-form__field > span {
+		color: var(--text-color);
+		font-size: 0.8rem;
+		font-weight: 650;
+	}
+
+	.profile-form__field input[type="text"],
+	.profile-form__field input[type="date"],
+	.profile-form__field textarea {
+		width: 100%;
+		padding: 0.42rem 0.6rem;
+		border: 1px solid color-mix(in srgb, var(--primary) 18%, var(--line-divider));
+		border-radius: 0.45rem;
+		background: var(--card-bg);
+		color: var(--text-color);
+		font-size: 0.8rem;
+		line-height: 1.5;
+		outline: none;
+		transition: border-color 160ms ease, box-shadow 160ms ease;
+	}
+
+	.profile-form__field input:focus,
+	.profile-form__field textarea:focus {
+		border-color: var(--primary);
+		box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 22%, transparent);
+	}
+
+	.profile-form__field textarea {
+		resize: vertical;
+		min-height: 2.6rem;
+	}
+
+	.profile-form__radios {
+		display: flex;
+		align-items: center;
+		gap: 1.1rem;
+		color: var(--text-color);
+		font-size: 0.8rem;
+	}
+
+	.profile-form__radios label {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		cursor: pointer;
+	}
+
+	.profile-form__radios input {
+		accent-color: var(--primary);
+	}
+
+	.profile-edit__footer {
+		display: flex;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 0.6rem;
+		padding-top: 0.1rem;
+	}
+
+	.profile-edit__status {
+		flex: 1;
+		min-width: 0;
+		margin: 0;
+		color: var(--content-meta);
+		font-size: 0.72rem;
+		line-height: 1.4;
+	}
+
+	.profile-btn {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.3rem;
+		padding: 0.45rem 0.95rem;
+		border: none;
+		border-radius: 0.5rem;
+		color: #fff;
+		font-size: 0.8rem;
+		font-weight: 700;
+		cursor: pointer;
+		transition: filter 160ms ease, transform 160ms ease;
+	}
+
+	.profile-btn:hover {
+		filter: brightness(1.08);
+		transform: translateY(-1px);
+	}
+
+	.profile-btn:disabled {
+		cursor: not-allowed;
+		opacity: 0.6;
+		transform: none;
+	}
+
+	.profile-btn--ok {
+		background: var(--primary);
+	}
+
+	.profile-btn--cancel {
+		background: #ef4444;
+	}
+
+	@media (max-width: 560px) {
+		.profile-view__detail {
+			flex-direction: column;
+			gap: 0.9rem;
+		}
+
+		.profile-motto {
+			flex: 0 0 auto;
+			padding-right: 0;
+			padding-bottom: 0.8rem;
+			border-right: none;
+			border-bottom: 1px dashed color-mix(in srgb, var(--primary) 30%, var(--line-divider));
+		}
+
+		.profile-motto__label {
+			writing-mode: horizontal-tb;
+			letter-spacing: 0.2em;
+		}
+
+		.profile-form {
+			grid-template-columns: 1fr;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.profile-close,
+		.profile-edit-fab,
+		.profile-btn {
+			transition: none;
+		}
+
+		.profile-close:hover {
+			transform: none;
+		}
+
+		.profile-edit-fab:hover,
+		.profile-btn:hover {
+			transform: none;
+		}
+	}
+
+	/* ===== 裁剪弹窗 ===== */
+
+	.profile-cropper {
+		position: fixed;
+		inset: 0;
+		z-index: 210;
+		display: none;
+		place-items: center;
+		padding: 1rem;
+	}
+
+	.profile-cropper.is-open {
+		display: grid;
+	}
+
+	.profile-cropper__backdrop {
+		position: absolute;
+		inset: 0;
+		background: rgb(0 0 0 / 55%);
+		backdrop-filter: blur(2px);
+	}
+
+	.profile-cropper__panel {
+		position: relative;
+		z-index: 1;
+		display: grid;
+		gap: 0.8rem;
+		width: min(32rem, 100%);
+		padding: 1rem 1.2rem 1.2rem;
+		border-radius: 0.9rem;
+		background: var(--card-bg);
+		box-shadow: 0 1.2rem 3rem rgb(0 0 0 / 30%);
+	}
+
+	.profile-cropper__header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+	}
+
+	.profile-cropper__header h3 {
+		margin: 0;
+		color: var(--text-color);
+		font-size: 1.02rem;
+		font-weight: 800;
+	}
+
+	.profile-cropper__close {
+		display: grid;
+		place-items: center;
+		width: 2rem;
+		height: 2rem;
+		border: none;
+		border-radius: 999px;
+		background: transparent;
+		color: var(--content-meta);
+		font-size: 1.15rem;
+		cursor: pointer;
+	}
+
+	.profile-cropper__close:hover {
+		background: var(--btn-regular-bg);
+		color: var(--text-color);
+	}
+
+	.profile-cropper__stage {
+		position: relative;
+		width: min(280px, 72vw);
+		aspect-ratio: 1;
+		margin-inline: auto;
+		overflow: hidden;
+		border-radius: 0.5rem;
+		background: #0b0b0f;
+		touch-action: none;
+		cursor: grab;
+	}
+
+	.profile-cropper[data-shape="rect"] .profile-cropper__stage {
+		width: 100%;
+		aspect-ratio: 3;
+	}
+
+	.profile-cropper__stage:active {
+		cursor: grabbing;
+	}
+
+	.profile-cropper__stage img {
+		position: absolute;
+		top: 0;
+		left: 0;
+		max-width: none;
+		transform-origin: 0 0;
+		user-select: none;
+		-webkit-user-drag: none;
+	}
+
+	/* 框外区域压暗：mask 与 stage 同形，阴影向外扩散被 stage 裁剪 */
+	.profile-cropper__mask {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		border-radius: 999px;
+		box-shadow: 0 0 0 9999px rgb(0 0 0 / 55%);
+	}
+
+	.profile-cropper[data-shape="rect"] .profile-cropper__mask {
+		border-radius: 0;
+	}
+
+	.profile-cropper__hint {
+		margin: 0;
+		color: var(--content-meta);
+		font-size: 0.72rem;
+		text-align: center;
+	}
+
+	.profile-cropper__footer {
+		display: flex;
+		justify-content: flex-end;
+		gap: 0.6rem;
+	}
+</style>

@@ -1,436 +1,211 @@
 <script lang="ts">
-import I18nKey from "@i18n/i18nKey";
-import { i18n } from "@i18n/translation";
-import { navigateToPage } from "@utils/navigation-utils";
 import { onMount } from "svelte";
 import Icon from "@/components/common/Icon.svelte";
-import type { SearchResult } from "@/global";
-import { loadPagefind } from "@/utils/pagefind";
-import { url as formatUrl, getSearchUrl } from "@/utils/url-utils";
+import {
+	type ArticleSuggestion,
+	searchNavbarArticles,
+} from "@/utils/navbar-search";
+import { navigateToPage } from "@/utils/navigation-utils";
+import { getSearchUrl, url } from "@/utils/url-utils";
 
-type LocalSearchPost = {
-	id: string;
-	url: string;
-	title: string;
-	description: string;
-	category: string;
-	tags: string[];
-	searchText: string;
-};
+let root: HTMLDivElement;
+let query = "";
+let results: ArticleSuggestion[] = [];
+let open = false;
+let loading = false;
+let error = "";
+let active = -1;
+let request = 0;
+let timer: ReturnType<typeof setTimeout>;
+let activeRequest: AbortController | null = null;
 
-let keywordDesktop = "";
-let keywordMobile = "";
-let result: SearchResult[] = [];
-let isSearching = false;
-let initialized = false;
-let debounceTimer: NodeJS.Timeout;
-let localSearchCache: LocalSearchPost[] | null = null;
-
-const escapeHtml = (value: string): string =>
-	value.replace(/[&<>"']/g, (char) => {
-		const entities: Record<string, string> = {
-			"&": "&amp;",
-			"<": "&lt;",
-			">": "&gt;",
-			'"': "&quot;",
-			"'": "&#39;",
-		};
-		return entities[char] || char;
-	});
-
-const highlightKeyword = (value: string, keyword: string): string => {
-	const trimmedKeyword = keyword.trim();
-	const escapedValue = escapeHtml(value);
-	if (!trimmedKeyword) return escapedValue;
-
-	const escapedKeyword = trimmedKeyword.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-	return escapedValue.replace(
-		new RegExp(escapedKeyword, "gi"),
-		(match) => `<mark>${match}</mark>`,
-	);
-};
-
-const loadLocalSearchPosts = async (): Promise<LocalSearchPost[]> => {
-	if (localSearchCache) return localSearchCache;
-
-	const response = await fetch(formatUrl("/api/allPostMeta.json"));
-	if (!response.ok) {
-		localSearchCache = [];
-		return localSearchCache;
+function highlightParts(text: string, keyword: string) {
+	const terms = [...new Set(keyword.trim().split(/\s+/).filter(Boolean))]
+		.sort((a, b) => b.length - a.length)
+		.map((term) => term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"));
+	if (!terms.length) return [{ text, matched: false }];
+	const parts: { text: string; matched: boolean }[] = [];
+	let position = 0;
+	for (const match of text.matchAll(new RegExp(terms.join("|"), "gi"))) {
+		const start = match.index;
+		if (start > position)
+			parts.push({ text: text.slice(position, start), matched: false });
+		parts.push({ text: match[0], matched: true });
+		position = start + match[0].length;
 	}
+	if (position < text.length)
+		parts.push({ text: text.slice(position), matched: false });
+	return parts;
+}
 
-	localSearchCache = await response.json();
-	return localSearchCache;
-};
+function close() {
+	open = false;
+	loading = false;
+	active = -1;
+	request++;
+	clearTimeout(timer);
+	activeRequest?.abort();
+	activeRequest = null;
+}
 
-const searchLocalPosts = async (keyword: string): Promise<SearchResult[]> => {
-	const normalizedKeyword = keyword.trim().toLowerCase();
-	if (!normalizedKeyword) return [];
-
-	const posts = await loadLocalSearchPosts();
-	return posts
-		.map((post) => {
-			const haystack = [
-				post.searchText,
-				post.title,
-				post.description,
-				post.category,
-				...(post.tags || []),
-			]
-				.filter(Boolean)
-				.join(" ")
-				.toLowerCase();
-
-			if (!haystack.includes(normalizedKeyword)) return null;
-
-			const metaParts = [
-				post.category ? `分类：${post.category}` : "",
-				post.tags?.length ? `标签：${post.tags.join(" / ")}` : "",
-			].filter(Boolean);
-
-			return {
-				url: post.url,
-				meta: { title: highlightKeyword(post.title, keyword) },
-				excerpt: highlightKeyword(
-					post.description || metaParts.join("; ") || post.title,
-					keyword,
-				),
-				content: metaParts.length
-					? highlightKeyword(metaParts.join("；"), keyword)
-					: undefined,
-			} satisfies SearchResult;
-		})
-		.filter((item): item is SearchResult => item !== null);
-};
-
-const togglePanel = () => {
-	void loadPagefind();
-	document
-		.getElementById("search-panel")
-		?.classList.toggle("float-panel-closed");
-};
-
-const setPanelVisibility = (show: boolean, isDesktop: boolean): void => {
-	const panel = document.getElementById("search-panel");
-	if (
-		!panel ||
-		(isDesktop && !keywordDesktop) ||
-		(!isDesktop && !keywordMobile)
-	) {
-		return;
-	}
-
-	panel.classList.toggle("float-panel-closed", !show);
-};
-
-const closeSearchPanel = (): void => {
-	document.getElementById("search-panel")?.classList.add("float-panel-closed");
-	keywordDesktop = "";
-	keywordMobile = "";
-	result = [];
-};
-
-const handleResultClick = (event: Event, targetUrl: string): void => {
-	event.preventDefault();
-	closeSearchPanel();
-	navigateToPage(targetUrl);
-};
-
-const search = async (keyword: string, isDesktop: boolean): Promise<void> => {
-	if (!keyword.trim()) {
-		setPanelVisibility(false, isDesktop);
-		result = [];
-		return;
-	}
-	if (!initialized) return;
-
-	isSearching = true;
-	clearTimeout(debounceTimer);
-
-	debounceTimer = setTimeout(async () => {
+function search(value: string) {
+	query = value;
+	clearTimeout(timer);
+	activeRequest?.abort();
+	const token = ++request;
+	results = [];
+	active = -1;
+	error = "";
+	open = !!query.trim();
+	loading = open;
+	if (!open) return;
+	timer = setTimeout(async () => {
+		const controller = new AbortController();
+		activeRequest = controller;
 		try {
-			let searchResults: SearchResult[] = [];
-
-			const pagefind = await loadPagefind();
-			if (pagefind) {
-				const response = await pagefind.search(keyword);
-				const pagefindResults = await Promise.all(
-					response.results.map((item) => item.data()),
-				);
-
-				// Pagefind 的 content 是整篇文章正文，不适合放进导航栏下拉结果。
-				// 保留标题与摘要，避免长文把搜索面板撑满。
-				searchResults = pagefindResults.map(
-					({ content: _content, ...item }) => item,
-				);
-			}
-
-			if (searchResults.length === 0) {
-				searchResults = await searchLocalPosts(keyword);
-			}
-
-			result = searchResults;
-			setPanelVisibility(true, isDesktop);
-		} catch (error) {
-			console.error("Search error:", error);
-			result = [];
-			setPanelVisibility(true, isDesktop);
+			const matches = await searchNavbarArticles(value, controller.signal);
+			if (token === request) results = matches;
+		} catch {
+			if (token === request) error = "暂时无法加载建议，可进入搜索页重试。";
 		} finally {
-			isSearching = false;
+			if (token === request) loading = false;
 		}
-	}, 300);
-};
+	}, 180);
+}
+
+function blurSearch() {
+	if (
+		document.activeElement instanceof HTMLElement &&
+		root.contains(document.activeElement)
+	)
+		document.activeElement.blur();
+}
+
+function navigate(destination: string) {
+	close();
+	blurSearch();
+	navigateToPage(destination);
+}
+
+function submit(event: SubmitEvent) {
+	event.preventDefault();
+	navigate(query.trim() ? getSearchUrl(query) : url("/search/"));
+}
+
+function keydown(event: KeyboardEvent) {
+	if (event.isComposing) return;
+	if (event.key === "Escape") {
+		event.preventDefault();
+		close();
+		blurSearch();
+	} else if (
+		(event.key === "ArrowDown" || event.key === "ArrowUp") &&
+		results.length
+	) {
+		event.preventDefault();
+		open = true;
+		active =
+			active < 0
+				? event.key === "ArrowDown"
+					? 0
+					: results.length - 1
+				: (active + (event.key === "ArrowDown" ? 1 : -1) + results.length) %
+					results.length;
+	} else if (event.key === "Enter" && open && active >= 0 && results[active]) {
+		event.preventDefault();
+		navigate(results[active].url);
+	}
+}
+
+function follow(event: MouseEvent, destination: string) {
+	if (
+		event.ctrlKey ||
+		event.metaKey ||
+		event.shiftKey ||
+		event.altKey ||
+		event.button !== 0
+	)
+		return;
+	event.preventDefault();
+	navigate(destination);
+}
 
 onMount(() => {
-	initialized = true;
-	return () => clearTimeout(debounceTimer);
+	const outside = (event: PointerEvent) => {
+		if (event.target instanceof Node && !root.contains(event.target)) {
+			close();
+			blurSearch();
+		}
+	};
+	const leave = () => close();
+	document.addEventListener("pointerdown", outside);
+	document.addEventListener("astro:before-swap", leave);
+	window.addEventListener("popstate", leave);
+	return () => {
+		close();
+		document.removeEventListener("pointerdown", outside);
+		document.removeEventListener("astro:before-swap", leave);
+		window.removeEventListener("popstate", leave);
+	};
 });
-
-$: if (initialized && (keywordDesktop || keywordDesktop === "")) {
-	search(keywordDesktop, true);
-}
-
-$: if (initialized && (keywordMobile || keywordMobile === "")) {
-	search(keywordMobile, false);
-}
 </script>
 
-<div id="search-bar" class="search-bar hidden lg:flex transition-all items-center h-11 mr-2 rounded-lg
-      bg-black/4 hover:bg-black/6 focus-within:bg-black/6
-      dark:bg-white/5 dark:hover:bg-white/10 dark:focus-within:bg-white/10
-">
-    <Icon icon="material-symbols:search"
-          class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"></Icon>
-    <input placeholder={i18n(I18nKey.search)} bind:value={keywordDesktop}
-           on:focus={() => { void loadPagefind(); void search(keywordDesktop, true); }}
-           class="transition-all pl-10 text-sm bg-transparent outline-0
-         h-full w-40 active:w-64 focus:w-64 text-black/50 dark:text-white/50"
-    >
-</div>
+{#snippet highlight(text: string)}
+	{#each highlightParts(text, query) as part}
+		{#if part.matched}<mark>{part.text}</mark>{:else}{part.text}{/if}
+	{/each}
+{/snippet}
 
-<button on:click={togglePanel} aria-label="Search Panel" id="search-switch"
-        class="btn-plain scale-animation rounded-lg w-11 h-11 active:scale-90">
-    <Icon icon="material-symbols:search" class="text-[1.25rem]"></Icon>
-</button>
-
-<div id="search-panel" class="float-panel float-panel-closed search-panel absolute
-top-20 left-4 md:left-[unset] right-4 shadow-2xl rounded-2xl p-2">
-
-    <div id="search-bar-inside" class="flex relative lg:hidden transition-all items-center h-11 rounded-xl
-      bg-black/4 hover:bg-black/6 focus-within:bg-black/6
-      dark:bg-white/5 dark:hover:bg-white/10 dark:focus-within:bg-white/10
-  ">
-        <Icon icon="material-symbols:search"
-              class="absolute text-[1.25rem] pointer-events-none ml-3 transition my-auto text-black/30 dark:text-white/30"></Icon>
-        <input placeholder={i18n(I18nKey.search)} bind:value={keywordMobile}
-               on:focus={() => { void loadPagefind(); }}
-               class="pl-10 absolute inset-0 text-sm bg-transparent outline-0
-               text-black/50 dark:text-white/50"
-        >
-    </div>
-
-    {#if isSearching}
-        <div class="transition first-of-type:mt-2 lg:first-of-type:mt-0 block rounded-xl text-lg px-3 py-2 text-50">
-            {i18n(I18nKey.searchLoading)}
-        </div>
-    {:else if result.length > 0}
-        <div class="search-results">
-            {#each result.slice(0, 5) as item}
-                <a href={item.url}
-                   on:click={(e) => handleResultClick(e, item.url)}
-                   class="search-result-item group"
-                   style="display:block;width:100%;min-width:0;max-width:100%;box-sizing:border-box;">
-                    <div class="search-result-title" style="display:block;width:100%;min-width:0;max-width:100%;white-space:normal;">
-                        {@html item.meta.title}
-                    </div>
-                    {#if item.content}
-                        <div class="search-result-meta">
-                            文章 · {@html item.content}
-                        </div>
-                    {/if}
-                    {#if item.excerpt}
-                        <div class="search-result-snippet">
-                            {@html item.excerpt}
-                        </div>
-                    {/if}
-                </a>
-            {/each}
-        </div>
-        {#if result.length > 5}
-            <a href={getSearchUrl(keywordDesktop || keywordMobile)}
-               on:click={(e) => handleResultClick(e, getSearchUrl(keywordDesktop || keywordMobile))}
-               class="search-more-link">
-                <span class="inline-flex items-center">
-                    {i18n(I18nKey.searchViewMore).replace('{count}', (result.length - 5).toString())}
-                    <Icon icon="fa7-solid:arrow-right" class="transition text-[0.75rem] ml-1"></Icon>
-                </span>
-            </a>
-        {/if}
-    {:else if keywordDesktop || keywordMobile}
-        <div class="transition first-of-type:mt-2 lg:first-of-type:mt-0 block rounded-xl text-lg px-3 py-2 text-50">
-            {i18n(I18nKey.searchNoResults)}
-        </div>
-    {:else}
-        <div class="transition first-of-type:mt-2 lg:first-of-type:mt-0 block rounded-xl text-lg px-3 py-2 text-50">
-            {i18n(I18nKey.searchTypeSomething)}
-        </div>
-    {/if}
+<div class="navbar-search" bind:this={root} onfocusout={(event) => { if (!(event.relatedTarget instanceof Node) || !root.contains(event.relatedTarget)) close(); }}>
+	<form class="navbar-search-form" action={url("/search/")} role="search" aria-label="导航文章搜索" onsubmit={submit}>
+		<input id="navbar-article-query" type="search" name="q" placeholder="搜索文章…" aria-label="搜索文章" maxlength="200" autocomplete="off" role="combobox" aria-autocomplete="list" aria-expanded={open} aria-controls="navbar-article-suggestions" aria-activedescendant={open && active >= 0 ? `navbar-suggestion-${active}` : undefined} value={query} oninput={(event) => { if (!event.isComposing) search(event.currentTarget.value); }} oncompositionend={(event) => search(event.currentTarget.value)} onfocus={() => { if (query.trim()) search(query); }} onkeydown={keydown} />
+		<button type="submit" aria-label="搜索" title="进入搜索页面"><Icon icon="material-symbols:search-rounded" class="text-[1.2rem]" /></button>
+	</form>
+	{#if open && query.trim()}
+		<div class="navbar-search-dropdown custom-scrollbar">
+			<div class="navbar-search-caption" role="status">{loading ? "正在查找文章…" : error || (results.length ? "相关文章" : "没有找到相关文章，换个关键词试试。")}</div>
+			<ul role="listbox" id="navbar-article-suggestions" aria-label="文章搜索建议">
+				{#each results as post, index (post.url)}
+					<li role="option" id={`navbar-suggestion-${index}`} aria-selected={active === index}>
+						<a href={post.url} onclick={(event) => follow(event, post.url)}>
+							<strong>{@render highlight(post.title)}</strong>
+							{#if post.description}<span>{@render highlight(post.description)}</span>{/if}
+							{#if post.category}<small>{@render highlight(post.category)}</small>{/if}
+						</a>
+					</li>
+				{/each}
+			</ul>
+			<a class="navbar-search-all" href={getSearchUrl(query)} onclick={(event) => follow(event, getSearchUrl(query))}>进入搜索页查看全部结果 →</a>
+		</div>
+	{/if}
 </div>
 
 <style>
-	input:focus {
-		outline: 0;
-	}
-
-	.search-bar {
-		position: relative;
-		flex: 0 0 auto;
-	}
-
-	.search-panel {
-		box-sizing: border-box;
-		width: min(32rem, calc(100vw - 2rem));
-		max-height: calc(100vh - 100px);
-		max-width: calc(100vw - 2rem);
-		min-width: 0;
-		overflow-x: hidden;
-		overflow-y: auto;
-	}
-
-	.search-results {
-		box-sizing: border-box;
-		display: flex;
-		flex-direction: column;
-		gap: 0.35rem;
-		width: 100%;
-		min-width: 0;
-		max-width: 100%;
-	}
-
-	.search-result-item {
-		box-sizing: border-box;
-		display: block;
-		width: 100%;
-		min-width: 0;
-		max-width: 100%;
-		min-height: 4.75rem;
-		overflow: hidden;
-		border: 1px solid transparent;
-		border-radius: 0.85rem;
-		padding: 0.85rem 0.95rem;
-		text-decoration: none;
-		transition:
-			background-color 0.15s ease-out,
-			border-color 0.15s ease-out;
-	}
-
-	.search-result-item:hover {
-		background: var(--btn-plain-bg-hover);
-		border-color: color-mix(in oklab, var(--primary) 18%, transparent);
-	}
-
-	.search-more-link {
-		box-sizing: border-box;
-		display: block;
-		width: 100%;
-		margin-top: 0.35rem;
-		border-radius: 0.85rem;
-		padding: 0.75rem 0.95rem;
-		color: var(--primary);
-		font-size: 0.95rem;
-		font-weight: 800;
-		text-align: center;
-		text-decoration: none;
-		transition: background-color 0.15s ease-out;
-	}
-
-	.search-more-link:hover {
-		background: transparent;
-	}
-
-	:global(#navbar.firefly-navbar #search-panel a.search-more-link::before),
-	:global(#navbar.firefly-navbar #search-panel a.search-more-link::after) {
-		content: none !important;
-		display: none !important;
-	}
-
-	:global(#navbar.firefly-navbar #search-panel a.search-more-link),
-	:global(#navbar.firefly-navbar #search-panel a.search-more-link:hover),
-	:global(#navbar.firefly-navbar #search-panel a.search-more-link:active) {
-		position: static !important;
-		transform: none !important;
-		box-shadow: none !important;
-	}
-
-	:global(#navbar.firefly-navbar #search-panel a.search-result-item::before),
-	:global(#navbar.firefly-navbar #search-panel a.search-result-item::after) {
-		content: none !important;
-		display: none !important;
-	}
-
-	:global(#navbar.firefly-navbar #search-panel a.search-result-item),
-	:global(#navbar.firefly-navbar #search-panel a.search-result-item:hover),
-	:global(#navbar.firefly-navbar #search-panel a.search-result-item:active) {
-		position: static !important;
-		transform: none !important;
-		box-shadow: none !important;
-		color: inherit !important;
-	}
-
-	.search-result-title {
-		display: block;
-		width: 100%;
-		color: rgb(0 0 0 / 0.86);
-		font-size: 1rem;
-		font-weight: 800;
-		line-height: 1.35;
-		min-width: 0;
-		max-width: 100%;
-		white-space: normal;
-		overflow-wrap: break-word;
-		word-break: normal;
-	}
-
-	:global(.dark) .search-result-title {
-		color: rgb(255 255 255 / 0.9);
-	}
-
-	.search-result-snippet,
-	.search-result-meta {
-		display: block;
-		width: 100%;
-		min-width: 0;
-		max-width: 100%;
-		overflow-wrap: break-word;
-		word-break: normal;
-	}
-
-	.search-result-snippet {
-		margin-top: 0.35rem;
-		color: rgb(0 0 0 / 0.58);
-		font-size: 0.86rem;
-		line-height: 1.55;
-		display: -webkit-box;
-		overflow: hidden;
-		-webkit-box-orient: vertical;
-		-webkit-line-clamp: 3;
-	}
-
-	:global(.dark) .search-result-snippet {
-		color: rgb(255 255 255 / 0.58);
-	}
-
-	.search-result-meta {
-		margin-top: 0.35rem;
-		overflow: hidden;
-		color: rgb(0 0 0 / 0.42);
-		font-size: 0.76rem;
-		line-height: 1.45;
-		text-overflow: ellipsis;
-		white-space: nowrap;
-	}
-
-	:global(.dark) .search-result-meta {
-		color: rgb(255 255 255 / 0.42);
+	.navbar-search { position: relative; flex: 0 0 auto; width: clamp(10rem, 12vw, 14rem); color: var(--nav-fg-1, var(--content-text)); }
+	.navbar-search-form { display: flex; align-items: center; height: 44px; border: 1px solid var(--navbar-module-border, var(--line-divider)); border-radius: 999px; background: var(--navbar-module-bg, var(--card-bg)); box-shadow: var(--navbar-module-shadow); backdrop-filter: blur(24px); }
+	input { width: 100%; min-width: 0; height: 100%; padding: 0 0.25rem 0 0.9rem; background: transparent; color: inherit; font-size: .8rem; outline: none; border: 0; border-radius: 999px 0 0 999px; }
+	input::placeholder { color: var(--nav-fg-2, var(--content-meta)); }
+	button { display: flex; flex: 0 0 42px; justify-content: center; align-items: center; height: 42px; border-radius: 50%; color: var(--primary); }
+	button:hover { background: var(--btn-regular-bg); }
+	.navbar-search-form:focus-within { border-color: var(--primary); }
+	button:focus-visible, a:focus-visible { outline: 2px solid var(--primary); outline-offset: 1px; }
+	.navbar-search-dropdown { position: absolute; top: calc(100% + .7rem); right: 0; z-index: 100; width: min(26rem, calc(100vw - 2rem)); max-height: min(32rem, calc(100dvh - 6rem)); overflow: auto; overscroll-behavior: contain; padding: .65rem; border: 1px solid var(--line-divider); border-radius: 1rem; background: var(--float-panel-bg, var(--card-bg)); box-shadow: 0 12px 36px rgb(0 0 0 / 12%); color: var(--content-text); }
+	.navbar-search-caption { padding: .4rem .5rem .65rem; color: var(--content-meta); font-size: .7rem; }
+	ul { margin: 0; padding: 0; list-style: none; }
+	li > a { display: grid; gap: .3rem; padding: .7rem .6rem; border-radius: .65rem; }
+	li[aria-selected="true"] > a, li > a:hover { background: var(--btn-regular-bg); }
+	strong { font-size: .85rem; line-height: 1.5; font-weight: 600; overflow-wrap: anywhere; }
+	mark { color: var(--primary); background: color-mix(in srgb, var(--primary) 18%, transparent); border-radius: .2em; padding: 0 .05em; font-weight: 800; }
+	li span { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: .7rem; line-height: 1.7; color: var(--content-meta); }
+	small { font-size: .65rem; color: var(--primary); }
+	.navbar-search-all { display: block; margin-top: .5rem; padding: .65rem; border-top: 1px solid var(--line-divider); text-align: center; font-size: .75rem; color: var(--primary); }
+	@media(max-width: 767px) {
+		.navbar-search { width: clamp(4.5rem, 21vw, 6rem); }
+		.navbar-search-form { height: 36px; }
+		input { padding-left: .5rem; font-size: .7rem; }
+		button { height: 34px; flex-basis: 30px; }
+		.navbar-search:focus-within { position: static; }
+		.navbar-search:focus-within .navbar-search-form { position: absolute; top: .45rem; left: 1rem; right: 1rem; z-index: 110; background: var(--float-panel-bg, var(--card-bg)); }
+		.navbar-search-dropdown { position: fixed; top: 4.5rem; left: .75rem; right: .75rem; width: auto; }
 	}
 </style>

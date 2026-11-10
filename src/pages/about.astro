@@ -1,28 +1,16 @@
 ---
-import { getEntry, render } from "astro:content";
+import ManagedPage from "@/components/pages/ManagedPage.svelte";
 import Markdown from "@components/common/Markdown.astro";
 import { Icon } from "astro-icon/components";
 import ImageWrapper from "@/components/common/ImageWrapper.astro";
-import { getEnabledFriends, profileConfig, siteConfig } from "@/config";
+import { profileConfig, siteConfig } from "@/config";
 import { serviceConfig } from "@/config/serviceConfig";
 import { blogChangelogEntries } from "@/data/blog-changelog";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
 import MainGridLayout from "@/layouts/MainGridLayout.astro";
 
-const aboutPost = await getEntry("spec", "about");
-
-if (!aboutPost) {
-	throw new Error("About page content not found");
-}
-
-const { Content } = await render(aboutPost);
-const openSourcePost = await getEntry("spec", "about-open-source");
-if (!openSourcePost) {
-	throw new Error("About page open-source repositories not found");
-}
-const { Content: OpenSourceContent } = await render(openSourcePost);
-const friendCount = getEnabledFriends().length;
+const friendCount = 0;
 const changelogDateCounts = new Map<string, number>();
 for (const entry of blogChangelogEntries) {
 	changelogDateCounts.set(
@@ -152,7 +140,7 @@ const serverStats = [
 			</div>
 
 			<div class="profile-actions" aria-label="个人主页操作">
-				<a class="profile-action profile-action--primary" href="https://github.com/Jarvis0227/Aemeath" target="_blank" rel="noopener noreferrer">
+				<a class="profile-action profile-action--primary" href="https://github.com/Jarvis0227/Yukina" target="_blank" rel="noopener noreferrer">
 					<Icon is:inline name="fa7-brands:github" aria-hidden="true" />
 					<span>查看 GitHub</span>
 					<Icon is:inline name="material-symbols:arrow-outward-rounded" aria-hidden="true" />
@@ -176,7 +164,7 @@ const serverStats = [
 			<a class="profile-tab" href="/friends/">
 				<Icon is:inline name="material-symbols:link-rounded" aria-hidden="true" />
 				<span>友链</span>
-				<em>{friendCount}</em>
+				<em><span data-managed-friend-count>{friendCount}</span></em>
 			</a>
 			<a class="profile-tab" href="/moments/">
 				<Icon is:inline name="material-symbols:rss-feed-rounded" aria-hidden="true" />
@@ -197,7 +185,7 @@ const serverStats = [
 					<div class="profile-readme__body">
 						<p class="profile-readme__quote">{profileConfig.bio}</p>
 						<Markdown class="profile-markdown">
-							<Content />
+							<ManagedPage slug="about" embedded client:load />
 						</Markdown>
 					</div>
 				</section>
@@ -232,9 +220,9 @@ const serverStats = [
 						<h2 id="profile-foundation-title">站在巨人的肩膀上</h2>
 						<span class="profile-section-note">页面加载 · GitHub API</span>
 					</header>
-					<p class="profile-foundation-copy">我的博客源码开源在 Aemeath。本站基于 CuteLeaf 的 Firefly 主题继续二次创作，也在这里向原作者致谢。</p>
+					<p class="profile-foundation-copy">我的博客源码开源在 Yukina。本站基于 CuteLeaf 的 Firefly 主题继续二次创作，也在这里向原作者致谢。</p>
 					<Markdown class="profile-foundation-list">
-						<OpenSourceContent />
+						<ManagedPage slug="about-open-source" embedded client:load />
 					</Markdown>
 				</section>
 

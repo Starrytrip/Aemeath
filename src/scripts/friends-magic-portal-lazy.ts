@@ -32,7 +32,11 @@ document.addEventListener("click", (event) => {
 });
 
 // 如果已经在 /links 页面（routeMode），立即加载
-if (document.querySelector('[data-friends-portal][data-friends-portal-route="true"]')) {
+if (
+	document.querySelector(
+		'[data-friends-portal][data-friends-portal-route="true"]',
+	)
+) {
 	// 延迟加载，避免阻塞初始渲染
 	if (document.readyState === "complete") {
 		setTimeout(initFriendsMagicPortal, 500);

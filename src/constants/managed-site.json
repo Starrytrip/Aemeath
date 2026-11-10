@@ -1,0 +1,273 @@
+{
+  "announcement": {
+    "closable": true,
+    "content": "请先填写 src/config 中的站点配置，再添加自己的文章和数据。",
+    "enabled": true,
+    "links": [
+      {
+        "enabled": true,
+        "external": true,
+        "name": "配置说明",
+        "url": "https://github.com/Jarvis0227/Aemeath#内容与配置"
+      }
+    ],
+    "title": "欢迎使用 Yukina"
+  },
+  "appearance": {
+    "card_decoration": "flat",
+    "carousel_interval": 5,
+    "hue": 250,
+    "intro_enabled": false,
+    "list_mode": "grid",
+    "mode": "system",
+    "navbar_behavior": "static",
+    "posts_per_page": 12,
+    "sakura_count": 42,
+    "sakura_enabled": false,
+    "sakura_speed": 1,
+    "theme": "yukina",
+    "wallpaper_mode": "fullscreen"
+  },
+  "basic": {
+    "description": "基于 Astro 与 Svelte 的个人博客，请填写自己的站点介绍。",
+    "favicon": "/favicon/xiaoai-avatar-512.png?v=20261028",
+    "keywords": "Yukina, Astro, ACGN, 博客, 技术博客, 静态博客",
+    "logo": "/assets/ai-xiaoai-avatar.png?v=20261028",
+    "site_url": "https://example.com",
+    "start_date": "2026-01-01",
+    "subtitle": "请填写自己的站点副标题",
+    "title": "Yukina"
+  },
+  "footer": {
+    "copyright": "© 2026 Yukina",
+    "records": []
+  },
+  "navigation": [
+    {
+      "icon": "material-symbols:home",
+      "name": "主页",
+      "url": "/"
+    },
+    {
+      "activePaths": [
+        "/posts/"
+      ],
+      "children": [
+        {
+          "icon": "material-symbols:archive",
+          "name": "归档",
+          "url": "/archive/"
+        },
+        {
+          "icon": "material-symbols:folder-open-rounded",
+          "name": "分类",
+          "url": "/categories/"
+        },
+        {
+          "icon": "material-symbols:tag-rounded",
+          "name": "标签",
+          "url": "/tags/"
+        }
+      ],
+      "icon": "material-symbols:article",
+      "name": "文章",
+      "url": "#"
+    },
+    {
+      "icon": "material-symbols:chat",
+      "name": "说说",
+      "url": "/talks/"
+    },
+    {
+      "icon": "material-symbols:group",
+      "name": "友链",
+      "pageKey": "friends",
+      "url": "/friends/"
+    },
+    {
+      "icon": "material-symbols:rss-feed-rounded",
+      "name": "朋友圈",
+      "url": "/moments/"
+    },
+    {
+      "icon": "material-symbols:chat",
+      "name": "留言",
+      "pageKey": "guestbook",
+      "url": "/guestbook/"
+    },
+    {
+      "children": [
+        {
+          "icon": "material-symbols:photo-library",
+          "name": "相册",
+          "pageKey": "gallery",
+          "url": "/gallery/"
+        },
+        {
+          "icon": "material-symbols:receipt-long-rounded",
+          "name": "账单",
+          "url": "/bills/"
+        },
+        {
+          "icon": "material-symbols:live-tv",
+          "name": "追番",
+          "pageKey": "anime",
+          "url": "/anime/"
+        },
+        {
+          "icon": "material-symbols:movie",
+          "name": "番组计划",
+          "pageKey": "bangumi",
+          "url": "/bangumi/"
+        },
+        {
+          "icon": "material-symbols:construction-rounded",
+          "name": "工具",
+          "url": "/tools/"
+        }
+      ],
+      "icon": "material-symbols:person",
+      "name": "我的",
+      "url": "#"
+    },
+    {
+      "children": [
+        {
+          "icon": "material-symbols:favorite",
+          "name": "打赏",
+          "pageKey": "sponsor",
+          "url": "/sponsor/"
+        },
+        {
+          "icon": "material-symbols:person",
+          "name": "关于我",
+          "url": "/about/"
+        },
+        {
+          "icon": "material-symbols:auto-awesome-rounded",
+          "name": "动态表情",
+          "url": "/lottie/"
+        },
+        {
+          "icon": "material-symbols:history-edu-rounded",
+          "name": "项目更新日志",
+          "url": "/changelog/"
+        },
+        {
+          "icon": "material-symbols:history-rounded",
+          "name": "博客日志",
+          "url": "/blog-changelog/"
+        }
+      ],
+      "icon": "material-symbols:info",
+      "name": "关于",
+      "url": "#"
+    }
+  ],
+  "profile": {
+    "avatar": "/assets/ai-xiaoai-avatar.png",
+    "bio": "请填写自己的简介",
+    "links": [],
+    "name": "你的昵称"
+  },
+  "sidebar": {
+    "widgets": [
+      {
+        "enabled": true,
+        "only_on_post": false,
+        "show_on_post": true,
+        "side": "left",
+        "sticky": false,
+        "type": "profile"
+      },
+      {
+        "enabled": true,
+        "only_on_post": false,
+        "show_on_post": true,
+        "side": "left",
+        "sticky": false,
+        "type": "announcement"
+      },
+      {
+        "enabled": true,
+        "only_on_post": false,
+        "show_on_post": true,
+        "side": "left",
+        "sticky": false,
+        "type": "quoteOfTheDay"
+      },
+      {
+        "enabled": true,
+        "only_on_post": false,
+        "show_on_post": true,
+        "side": "left",
+        "sticky": true,
+        "type": "music"
+      },
+      {
+        "enabled": true,
+        "only_on_post": false,
+        "show_on_post": true,
+        "side": "left",
+        "sticky": true,
+        "type": "categories"
+      },
+      {
+        "enabled": true,
+        "only_on_post": false,
+        "show_on_post": true,
+        "side": "left",
+        "sticky": true,
+        "type": "tags"
+      },
+      {
+        "enabled": true,
+        "only_on_post": false,
+        "show_on_post": false,
+        "side": "right",
+        "sticky": false,
+        "type": "timeGreeting"
+      },
+      {
+        "enabled": true,
+        "only_on_post": false,
+        "show_on_post": false,
+        "side": "right",
+        "sticky": false,
+        "type": "stats"
+      },
+      {
+        "enabled": true,
+        "only_on_post": false,
+        "show_on_post": false,
+        "side": "right",
+        "sticky": false,
+        "type": "siteInfo"
+      },
+      {
+        "enabled": true,
+        "only_on_post": false,
+        "show_on_post": false,
+        "side": "right",
+        "sticky": true,
+        "type": "calendar"
+      },
+      {
+        "enabled": true,
+        "only_on_post": true,
+        "show_on_post": true,
+        "side": "right",
+        "sticky": true,
+        "type": "sidebarToc"
+      },
+      {
+        "enabled": true,
+        "only_on_post": false,
+        "show_on_post": false,
+        "side": "right",
+        "sticky": true,
+        "type": "scheduleProgress"
+      }
+    ]
+  }
+}

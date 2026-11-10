@@ -1,3 +1,4 @@
+import {getManagedAppearance} from "./managed-state";
 import {
 	BANNER_HEIGHT_EXTEND,
 	DARK_MODE,
@@ -23,8 +24,8 @@ import {
 } from "../config/backgroundWallpaper";
 import { nationalDayTheme } from "../config/nationalDayTheme";
 import {
-	getBackgroundImages,
 	isHomePage as checkIsHomePage,
+	getBackgroundImages,
 } from "./layout-utils";
 
 // Declare global functions
@@ -36,7 +37,8 @@ declare global {
 }
 
 const SELECTED_WALLPAPER_INDEX_KEY = "selectedWallpaperIndex";
-const SELECTED_WALLPAPER_INDEX_SCHEMA_KEY = "selectedWallpaperIndexSchemaVersion";
+const SELECTED_WALLPAPER_INDEX_SCHEMA_KEY =
+	"selectedWallpaperIndexSchemaVersion";
 const SELECTED_WALLPAPER_SCHEMA_VERSION = "3";
 const SELECTED_WALLPAPER_SOURCE_KEY = "selectedWallpaperSourceByTheme";
 const LEGACY_CUSTOM_WALLPAPER_KEY = "customWallpaper";
@@ -57,7 +59,9 @@ function isNationalDayWallpaperSource(source: string): boolean {
 }
 
 function isNationalDayWallpaperIndex(index: number): boolean {
-	return isNationalDayWallpaperSource(getBackgroundImages().desktop[index] ?? "");
+	return isNationalDayWallpaperSource(
+		getBackgroundImages().desktop[index] ?? "",
+	);
 }
 
 function getSelectedWallpaperSourceKey(isNationalDayEnabled: boolean): string {
@@ -79,18 +83,21 @@ function getWallpaperThemeOrdinal(index: number): number {
 
 function isWallpaperIndexAllowedForCurrentTheme(index: number): boolean {
 	const source = getBackgroundImages().desktop[index];
-	return Boolean(source) &&
-		(isNationalDayWallpaperIndex(index) === getNationalDayThemeEnabled());
+	return (
+		Boolean(source) &&
+		isNationalDayWallpaperIndex(index) === getNationalDayThemeEnabled()
+	);
 }
 
 function getWallpaperMobileIndex(index: number): number {
 	const desktopSource = getBackgroundImages().desktop[index];
 	if (!desktopSource) return index;
 	const isNationalDay = isNationalDayWallpaperSource(desktopSource);
-	const mobileIndices = getBackgroundImages().mobile.flatMap((source, mobileIndex) =>
-		isNationalDayWallpaperSource(source) === isNationalDay
-			? [mobileIndex]
-			: [],
+	const mobileIndices = getBackgroundImages().mobile.flatMap(
+		(source, mobileIndex) =>
+			isNationalDayWallpaperSource(source) === isNationalDay
+				? [mobileIndex]
+				: [],
 	);
 	const ordinal = getWallpaperThemeOrdinal(index);
 	return mobileIndices[Math.min(ordinal, mobileIndices.length - 1)] ?? index;
@@ -112,9 +119,8 @@ export type NavbarBehavior = "auto" | "static";
 export function getStoredNavbarBehavior(): NavbarBehavior {
 	if (typeof window === "undefined") return "static";
 	try {
-		return window.localStorage.getItem(NAVBAR_BEHAVIOR_KEY) === "auto"
-			? "auto"
-			: "static";
+		const saved=window.localStorage.getItem(NAVBAR_BEHAVIOR_KEY);
+        return saved==="auto"||saved==="static"?saved:getManagedAppearance()?.navbar_behavior||"static";
 	} catch {
 		return "static";
 	}
@@ -142,9 +148,8 @@ export function setNavbarBehavior(behavior: NavbarBehavior): void {
 export function getStoredCardDecorationMode(): CardDecorationMode {
 	if (typeof window === "undefined") return "flat";
 	try {
-		return window.localStorage.getItem(CARD_DECORATION_MODE_KEY) === "soft"
-			? "soft"
-			: "flat";
+		const saved=window.localStorage.getItem(CARD_DECORATION_MODE_KEY);
+        return saved==="soft"||saved==="flat"?saved:getManagedAppearance()?.card_decoration||"flat";
 	} catch {
 		return "flat";
 	}
@@ -181,8 +186,13 @@ function migrateSelectedWallpaperIndex(): void {
 			return;
 		}
 		const storedIndex = localStorage.getItem(SELECTED_WALLPAPER_INDEX_KEY);
-		const parsedIndex = storedIndex === null ? null : Number.parseInt(storedIndex, 10);
-		if (parsedIndex !== null && Number.isInteger(parsedIndex) && parsedIndex >= 0) {
+		const parsedIndex =
+			storedIndex === null ? null : Number.parseInt(storedIndex, 10);
+		if (
+			parsedIndex !== null &&
+			Number.isInteger(parsedIndex) &&
+			parsedIndex >= 0
+		) {
 			const desktopImages = getBackgroundImages().desktop;
 			const firstNormalIndex = desktopImages.findIndex(
 				(source) => !isNationalDayWallpaperSource(source),
@@ -224,13 +234,13 @@ export function getDefaultHue(): number {
 		return Number.parseInt(fallback, 10);
 	}
 	const configCarrier = document.getElementById("config-carrier");
-	return Number.parseInt(configCarrier?.dataset.hue || fallback, 10);
+	return getManagedAppearance()?.hue ?? Number.parseInt(configCarrier?.dataset.hue || fallback, 10);
 }
 
 export function getDefaultTheme(): LIGHT_DARK_MODE {
 	// 如果配置文件中设置了 defaultMode，使用配置的值
 	// 否则使用 DEFAULT_THEME（向后兼容）
-	return siteConfig.themeColor.defaultMode ?? DEFAULT_THEME;
+	return getManagedAppearance()?.mode ?? siteConfig.themeColor.defaultMode ?? DEFAULT_THEME;
 }
 
 // 获取系统主题
@@ -266,7 +276,9 @@ export function getNationalDayThemeEnabled(): boolean {
 	}
 	try {
 		const stored = window.localStorage.getItem(NATIONAL_DAY_THEME_KEY);
-		return stored === null ? nationalDayTheme.defaultEnabled : stored === "true";
+		return stored === null
+			? nationalDayTheme.defaultEnabled
+			: stored === "true";
 	} catch {
 		return document.documentElement.dataset.nationalDayTheme !== "false";
 	}
@@ -519,7 +531,7 @@ export function applyWallpaperModeToDocument(
 	const currentMode =
 		(document.documentElement.getAttribute(
 			"data-wallpaper-mode",
-		) as WALLPAPER_MODE) || backgroundWallpaper.mode;
+		) as WALLPAPER_MODE) || getManagedAppearance()?.wallpaper_mode || backgroundWallpaper.mode;
 
 	// 检查是否允许切换壁纸模式
 	const isSwitchable = backgroundWallpaper.switchable ?? true;
@@ -709,13 +721,7 @@ function showBannerMode(animate = false) {
 			backgroundWallpaper.common?.navbar?.transparentMode || "semi";
 		navbar.setAttribute("data-transparent-mode", transparentMode);
 
-		// 重新初始化半透明模式滚动检测（如果需要）
-		if (
-			transparentMode === "semifull" &&
-			typeof window.initSemifullScrollDetection === "function"
-		) {
-			window.initSemifullScrollDetection();
-		}
+		window.initSemifullScrollDetection?.();
 	}
 }
 
@@ -770,12 +776,7 @@ function showFullscreenMode(animate = false) {
 			backgroundWallpaper.common?.navbar?.transparentMode || "semi";
 		navbar.setAttribute("data-transparent-mode", transparentMode);
 
-		if (
-			transparentMode === "semifull" &&
-			typeof window.initSemifullScrollDetection === "function"
-		) {
-			window.initSemifullScrollDetection();
-		}
+		window.initSemifullScrollDetection?.();
 	}
 }
 
@@ -887,13 +888,8 @@ function updateNavbarTransparency(mode: WALLPAPER_MODE) {
 	// 移除scrolled类
 	navbar.classList.remove("scrolled");
 
-	// 滚动检测功能
-	if (
-		transparentMode === "semifull" &&
-		(mode === WALLPAPER_BANNER || mode === WALLPAPER_FULLSCREEN) &&
-		typeof window.initSemifullScrollDetection === "function"
-	) {
-		// 在Banner和全屏壁纸模式的semifull下启用滚动检测
+	// 切换壁纸后仍按导航偏好绑定或清理滚动监听。
+	if (typeof window.initSemifullScrollDetection === "function") {
 		window.initSemifullScrollDetection();
 	} else if (window.semifullScrollHandler) {
 		// 移除滚动监听器
@@ -1114,18 +1110,18 @@ export function getStoredWallpaperMode(): WALLPAPER_MODE {
 		typeof localStorage === "undefined" ||
 		typeof localStorage.getItem !== "function"
 	) {
-		return backgroundWallpaper.mode;
+		return getManagedAppearance()?.wallpaper_mode ?? backgroundWallpaper.mode;
 	}
 
 	const isSwitchable = backgroundWallpaper.switchable ?? true;
 	if (!isSwitchable) {
 		localStorage.removeItem("wallpaperMode");
-		return backgroundWallpaper.mode;
+		return getManagedAppearance()?.wallpaper_mode ?? backgroundWallpaper.mode;
 	}
 
 	return (
 		(localStorage.getItem("wallpaperMode") as WALLPAPER_MODE) ||
-		backgroundWallpaper.mode
+		getManagedAppearance()?.wallpaper_mode || backgroundWallpaper.mode
 	);
 }
 
@@ -1204,7 +1200,11 @@ export function clearSelectedWallpaper(): void {
 }
 
 export function applyStoredSelectedWallpaper(): void {
-	if (typeof document !== "undefined" && document.documentElement.dataset.siteTheme === "pure") return;
+	if (
+		typeof document !== "undefined" &&
+		document.documentElement.dataset.siteTheme === "pure"
+	)
+		return;
 	const index = getStoredSelectedWallpaperIndex();
 	if (
 		typeof localStorage !== "undefined" &&
@@ -1249,7 +1249,11 @@ export function applyStoredSelectedWallpaper(): void {
 }
 
 function loadWallpaperSlideImage(slide: HTMLElement | null): void {
-	if (document.documentElement.dataset.siteTheme === "pure" || document.documentElement.dataset.wallpaperMode === "none") return;
+	if (
+		document.documentElement.dataset.siteTheme === "pure" ||
+		document.documentElement.dataset.wallpaperMode === "none"
+	)
+		return;
 	const image = slide?.querySelector<HTMLImageElement>("img");
 	if (!image) return;
 	const deferredSrc = image.getAttribute("data-src");
@@ -1271,7 +1275,8 @@ function syncWallpaperFallbackToSlide(
 	const source = image?.getAttribute("data-src") || image?.getAttribute("src");
 	const device = slide?.dataset.wallpaperDevice;
 	if (!source || !device) return;
-	const theme = slide.dataset.originalWallpaper === "true" ? "national" : "normal";
+	const theme =
+		slide.dataset.originalWallpaper === "true" ? "national" : "normal";
 	wallpaperWrapper.style.setProperty(
 		`--wallpaper-fallback-${theme}-${device}`,
 		`url("${source}")`,
@@ -1294,7 +1299,10 @@ export function applySelectedWallpaperToDocument(index: number): void {
 	const mobileIndex = getWallpaperMobileIndex(index);
 	const ordinal = getWallpaperThemeOrdinal(index);
 	wallpaperWrapper.setAttribute("data-selected-wallpaper", String(index));
-	wallpaperWrapper.setAttribute("data-selected-wallpaper-ordinal", String(ordinal));
+	wallpaperWrapper.setAttribute(
+		"data-selected-wallpaper-ordinal",
+		String(ordinal),
+	);
 	wallpaperWrapper.removeAttribute("data-custom-wallpaper");
 
 	const slides = Array.from(
@@ -1311,7 +1319,10 @@ export function applySelectedWallpaperToDocument(index: number): void {
 			Number.parseInt(slide.dataset.index ?? "-1", 10) === mobileIndex,
 	);
 	slides.forEach((slide) => {
-		slide.classList.toggle("active", slide === desktopSlide || slide === mobileSlide);
+		slide.classList.toggle(
+			"active",
+			slide === desktopSlide || slide === mobileSlide,
+		);
 		slide.classList.remove("prev-waiting");
 	});
 	const activeSlide =
@@ -1359,15 +1370,17 @@ export function clearSelectedWallpaperFromDocument(
 			(slide.dataset.originalWallpaper === "true") === isNationalDay,
 	);
 	const root = document.documentElement;
-	const initialSource = preserveCurrentWallpaper &&
+	const initialSource =
+		preserveCurrentWallpaper &&
 		wallpaperWrapper.dataset.initialWallpaperApplied !== "true" &&
 		root.dataset.initialWallpaperNational === String(isNationalDay)
-		? root.dataset.initialWallpaperDesktop
-		: undefined;
+			? root.dataset.initialWallpaperDesktop
+			: undefined;
 	const currentDesktopSlide = desktopSlides.find((slide) => {
 		const image = slide.querySelector<HTMLImageElement>("img");
 		return initialSource
-			? (image?.getAttribute("data-src") || image?.getAttribute("src")) === initialSource
+			? (image?.getAttribute("data-src") || image?.getAttribute("src")) ===
+					initialSource
 			: slide.classList.contains("active");
 	});
 	wallpaperWrapper.dataset.initialWallpaperApplied = "true";
@@ -1385,11 +1398,16 @@ export function clearSelectedWallpaperFromDocument(
 		desktopSlides[0] ??
 		null;
 	const mobileSlide =
-		mobileSlides[Math.min(Math.max(desktopOrdinal, 0), mobileSlides.length - 1)] ??
+		mobileSlides[
+			Math.min(Math.max(desktopOrdinal, 0), mobileSlides.length - 1)
+		] ??
 		mobileSlides[0] ??
 		null;
 	slides.forEach((slide) => {
-		slide.classList.toggle("active", slide === desktopSlide || slide === mobileSlide);
+		slide.classList.toggle(
+			"active",
+			slide === desktopSlide || slide === mobileSlide,
+		);
 		slide.classList.remove("prev-waiting");
 	});
 	const activeSlide =
@@ -1668,11 +1686,15 @@ export function applyGradientEnabledToDocument(enabled: boolean): void {
 
 // Sakura effect functions
 export function getDefaultSakuraEnabled(): boolean {
-	return sakuraConfig?.enable ?? false;
+	return getManagedAppearance()?.sakura_enabled ?? sakuraConfig?.enable ?? false;
 }
 
 export function getStoredSakuraEnabled(): boolean {
 	if (typeof localStorage === "undefined") {
+		return getDefaultSakuraEnabled();
+	}
+	// 不允许用户切换时，始终以配置为准，忽略本地偏好
+	if (!(sakuraConfig?.switchable ?? false)) {
 		return getDefaultSakuraEnabled();
 	}
 	const stored = localStorage.getItem("sakuraEnabled");

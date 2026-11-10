@@ -66,6 +66,7 @@ Firefly-master/
 
 # Local review artifacts and generated service metadata
 .artifacts/
+public/vendor/vditor/
 waline/
 ops/
 .env.*

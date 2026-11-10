@@ -1,0 +1,170 @@
+---
+import { Icon } from "astro-icon/components";
+---
+
+<div id="auth-widget" class="relative" data-auth-widget>
+  <button
+    id="auth-switch"
+    type="button"
+    data-login-open
+    aria-label="登录"
+    title="登录"
+    class="theme-btn btn-plain scale-animation rounded-lg h-11 px-2.5 flex items-center gap-1.5 active:scale-90"
+  >
+    <Icon is:inline name="material-symbols:person-rounded" class="text-[1.25rem]" data-auth-icon-guest />
+    <span
+      data-auth-avatar-fallback
+      class="hidden h-7 w-7 shrink-0 place-items-center rounded-full bg-(--primary) text-xs font-bold text-white"
+      aria-hidden="true"
+    ></span>
+    <img data-auth-avatar src="" alt="" class="hidden h-7 w-7 shrink-0 rounded-full object-cover ring-1 ring-(--line-divider)" />
+    <span data-auth-label class="text-sm font-medium hidden xl:inline">登录</span>
+  </button>
+  <div
+    data-auth-menu
+    class="float-panel float-panel-closed absolute right-0 top-13 p-2 w-44 z-50"
+  >
+    <div class="px-2 py-1.5 text-sm font-bold truncate text-(--btn-content)" data-auth-username></div>
+    <button
+      type="button"
+      data-auth-profile
+      class="btn-plain flex items-center gap-1.5 w-full text-left px-2 py-1.5 text-sm rounded-md text-(--btn-content) hover:bg-(--btn-regular-bg) active:scale-95"
+    >
+      <Icon is:inline name="material-symbols:person-outline-rounded" class="text-[1rem]" />
+      <span>个人信息</span>
+    </button>
+    <a href="/admin/" data-auth-admin style="display:none" class="btn-plain flex items-center gap-1.5 w-full px-2 py-1.5 text-sm rounded-md text-(--btn-content)">内容管理</a>
+    <button
+      type="button"
+      data-auth-logout
+      class="btn-plain flex items-center gap-1.5 w-full text-left px-2 py-1.5 text-sm rounded-md text-(--btn-content) hover:bg-(--btn-regular-bg) active:scale-95"
+    >
+      <Icon is:inline name="material-symbols:logout-rounded" class="text-[1rem]" />
+      <span>退出登录</span>
+    </button>
+  </div>
+</div>
+
+<script>
+  import {
+    ApiError,
+    fetchMe,
+    getAccessToken,
+    logout,
+    type AuthUser,
+  } from "@/utils/api-client";
+
+  /** 头像缺失时用昵称 / 用户名首字符兜底。 */
+  const displayName = (user: AuthUser): string =>
+    user.nickname || user.username;
+
+  const firstChar = (user: AuthUser): string =>
+    Array.from(displayName(user))[0]?.toUpperCase() ?? "?";
+
+  const initAuth = () => {
+    const widget = document.getElementById("auth-widget");
+    if (!widget || widget.dataset.bound === "true") return;
+    widget.dataset.bound = "true";
+
+    const switchEl = widget.querySelector<HTMLButtonElement>("#auth-switch");
+    const menu = widget.querySelector<HTMLElement>("[data-auth-menu]");
+    const label = widget.querySelector<HTMLElement>("[data-auth-label]");
+    const guestIcon = widget.querySelector<HTMLElement>("[data-auth-icon-guest]");
+    const avatar = widget.querySelector<HTMLImageElement>("[data-auth-avatar]");
+    const fallback = widget.querySelector<HTMLElement>("[data-auth-avatar-fallback]");
+    const nameEl = widget.querySelector<HTMLElement>("[data-auth-username]");
+    const logoutBtn = widget.querySelector<HTMLButtonElement>("[data-auth-logout]");
+
+    let user: AuthUser | null = null;
+
+    const closeMenu = () => {
+      menu?.classList.add("float-panel-closed");
+    };
+
+    const render = () => {
+      const name = user ? displayName(user) : "登录";
+      if (switchEl) {
+        switchEl.setAttribute("aria-label", user ? `${name} 的账户` : "登录");
+        switchEl.title = name;
+      }
+      // 登录后只显示头像，不显示名称
+      if (label) label.style.display = user ? "none" : "";
+      guestIcon?.classList.toggle("hidden", Boolean(user));
+      if (avatar) {
+        const url = user?.avatar_url ?? "";
+        avatar.src = url;
+        avatar.alt = user ? `${name} 的头像` : "";
+        avatar.classList.toggle("hidden", !url);
+      }
+      if (fallback) {
+        const showFallback = user !== null && !user.avatar_url;
+        fallback.textContent = user && showFallback ? firstChar(user) : "";
+        fallback.classList.toggle("inline-grid", showFallback);
+        fallback.classList.toggle("hidden", !showFallback);
+      }
+      if (nameEl) nameEl.textContent = user ? name : "";
+      const adminLink = widget.querySelector<HTMLElement>("[data-auth-admin]");
+      if (adminLink) adminLink.style.display = user?.is_admin ? "flex" : "none";
+      if (!user) closeMenu();
+    };
+
+    const loadUser = async () => {
+      if (!getAccessToken()) {
+        user = null;
+        render();
+        return;
+      }
+      try {
+        user = await fetchMe();
+      } catch (error) {
+        // 刷新失败（会话过期）时回到未登录态
+        if (error instanceof ApiError && (error.status === 401 || error.status === 403)) {
+          user = null;
+        }
+      }
+      render();
+    };
+
+    switchEl?.addEventListener("click", (event) => {
+      if (!user) return; // 未登录时交给登录浮层处理
+      event.preventDefault();
+      menu?.classList.toggle("float-panel-closed");
+    });
+
+    // 个人信息：直接弹出资料卡弹窗（不跳转页面）
+    widget
+      .querySelector("[data-auth-profile]")
+      ?.addEventListener("click", () => {
+        closeMenu();
+        window.dispatchEvent(new CustomEvent("yukina:open-profile-modal"));
+      });
+
+    logoutBtn?.addEventListener("click", async () => {
+      logoutBtn.disabled = true;
+      try {
+        await logout();
+      } catch {
+        // 即使请求失败也清除本地登录态
+      }
+      user = null;
+      render();
+      logoutBtn.disabled = false;
+      window.dispatchEvent(new CustomEvent("yukina:auth-changed"));
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!(event.target instanceof Node)) return;
+      if (!widget.contains(event.target)) closeMenu();
+    });
+
+    // 登录浮层完成登录/退出后同步导航栏状态
+    window.addEventListener("yukina:auth-changed", () => {
+      void loadUser();
+    });
+
+    void loadUser();
+  };
+
+  initAuth();
+  document.addEventListener("astro:page-load", initAuth);
+</script>

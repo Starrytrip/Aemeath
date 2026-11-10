@@ -1,4 +1,4 @@
-/* Shared composer and emoji layout for Aemeath and Pure on every comment page. */
+/* Shared composer and emoji layout for Yukina and Pure on every comment page. */
 html #waline[data-waline-root] {
 	--comment-composer-surface: var(--card-bg, #fff);
 	--comment-composer-ink: var(--text-color, #3f3f46);

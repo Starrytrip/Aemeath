@@ -1,16 +1,21 @@
 {
-  "name": "aemeath",
+  "name": "yukina",
   "type": "module",
   "version": "4.3.0",
   "scripts": {
-    "dev": "pnpm friend-colors && astro dev",
+    "dev": "node scripts/prepare-admin-editor.mjs && pnpm friend-colors && astro dev",
     "start": "pnpm dev",
     "check": "astro check",
-		"build": "node scripts/generate-icons.js && tsx scripts/generate-lqips.ts && pnpm friend-colors && astro build && tsx scripts/subset-fonts.ts && pagefind --site dist",
-    "preview": "astro preview",
+    "build": "tsx scripts/export-site-settings.ts && node scripts/prepare-admin-editor.mjs && node scripts/generate-icons.js && tsx scripts/generate-lqips.ts && pnpm friend-colors && astro build && tsx scripts/subset-fonts.ts && pagefind --site dist",
+    "preview": "node scripts/preview.mjs",
     "astro": "astro",
     "type-check": "tsc --noEmit --isolatedDeclarations",
     "new-post": "node scripts/new-post.js",
+    "documents:sync": "tsx scripts/sync-documents.ts",
+    "site:export": "tsx scripts/export-site-settings.ts",
+    "pages:clean": "tsx scripts/clean-page-content.ts",
+    "site:import": "tsx scripts/import-site.ts",
+    "images:migrate": "tsx scripts/migrate-article-images.ts",
     "post-studio": "node scripts/post-studio.js",
     "format": "biome format --write ./src",
     "lint": "biome check --write ./src",
@@ -54,8 +59,10 @@
     "expressive-code-language-badge": "^1.1.0",
     "glob": "^11.1.0",
     "hastscript": "^9.0.1",
+    "jszip": "^3.10.2",
     "katex": "^0.17.0",
     "l2d-widget": "^0.1.0",
+    "lunar-typescript": "1.8.7",
     "lxgw-wenkai-screen-webfont": "1.1.0",
     "mdast-util-to-string": "^4.0.0",
     "pagefind": "^1.5.2",
@@ -80,6 +87,7 @@
     "three": "^0.185.1",
     "typescript": "^5.9.2",
     "unist-util-visit": "^5.1.0",
+    "vditor": "^4.0.1",
     "wrangler": "^4.102.0"
   },
   "devDependencies": {
@@ -93,11 +101,13 @@
     "@types/qrcode": "^1.5.6",
     "@types/sanitize-html": "^2.16.1",
     "@types/three": "^0.185.4",
+    "github-slugger": "^2.0.0",
     "postcss-import": "^16.1.1",
     "postcss-nesting": "^14.0.0",
     "subset-font": "^2.5.0",
     "tailwindcss": "^4.3.1",
-    "tsx": "^4.22.4"
+    "tsx": "^4.22.4",
+    "yaml": "^2.9.0"
   },
   "packageManager": "pnpm@9.14.4"
 }

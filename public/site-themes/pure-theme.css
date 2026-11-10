@@ -1,5 +1,5 @@
 /* Astro Theme Pure layout adapter. Upstream: cworld1/astro-theme-pure (Apache-2.0).
- * Scoped by data-site-theme so the existing Aemeath design remains independent.
+ * Scoped by data-site-theme so the existing Yukina design remains independent.
  */
 html[data-site-theme="pure"] {
 	--pure-bg: var(--page-bg);

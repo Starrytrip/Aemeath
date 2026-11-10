@@ -11,6 +11,7 @@ export type NavBarLink = {
 
 export enum NavBarSearchMethod {
 	PageFind = 0,
+	Backend = 1,
 }
 
 export type NavBarSearchConfig = {

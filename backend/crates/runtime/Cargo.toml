@@ -1,0 +1,23 @@
+[package]
+name = "yukina-runtime"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+yukina-shared.workspace = true
+yukina-store.workspace = true
+yukina-embedding.workspace = true
+axum.workspace = true
+serde.workspace = true
+chrono.workspace = true
+jsonwebtoken.workspace = true
+bcrypt.workspace = true
+rand.workspace = true
+sha2.workspace = true
+hex.workspace = true
+dashmap.workspace = true
+ip2region.workspace = true
+governor.workspace = true
+sea-orm.workspace = true
+tracing.workspace = true
+serde_json.workspace = true

@@ -1,0 +1,22 @@
+[package]
+name = "yukina-media-service"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+tempfile.workspace = true
+yukina-shared.workspace = true
+yukina-store.workspace = true
+image.workspace = true
+tokio.workspace = true
+axum.workspace = true
+serde.workspace = true
+sea-orm.workspace = true
+sha2.workspace = true
+hex.workspace = true
+tracing.workspace = true
+yukina-runtime.workspace = true
+serde_json.workspace = true
+rand.workspace = true
+reqwest.workspace = true
+tokio-util.workspace = true

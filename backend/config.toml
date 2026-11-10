@@ -1,0 +1,81 @@
+# Yukina 后端配置
+#
+# 优先级：环境变量 > 本文件 > 内置默认值
+# 敏感信息（JWT 密钥、SMTP 密码、管理员密码）建议只放环境变量或 .env，
+# 本文件会提交到仓库，不要写入真实凭据。
+# 可用 CONFIG_PATH 环境变量指定其他配置文件路径。
+
+[app]
+name = "Yukina Blog API"
+environment = "development"
+
+[server]
+bind_addr = "127.0.0.1"
+port = 8787
+cors_origins = ["http://localhost:4321", "http://127.0.0.1:4321"]
+
+[database]
+# 支持 sqlite://data/yukina.db 或直接写文件路径
+url = "sqlite://data/yukina.db"
+data_dir = "data"
+
+[auth]
+# 生产环境必须设置；建议用 JWT_SECRET 环境变量，而不是写在这里
+secret = ""
+access_token_expire_minutes = 30
+refresh_token_expire_days = 7
+cookie_secure = false
+
+[admin]
+username = "admin"
+# 留空则用 ADMIN_PASSWORD 环境变量；都没有时回退为 admin123（仅限开发）
+password = ""
+# 管理员绑定邮箱，用于找回密码；留空则不绑定
+email = ""
+
+[rate_limit]
+# 通用 API：平均每秒补充 1 个令牌，突发 20
+api_per_second = 1
+api_burst = 20
+# 登录/注册/验证码/重置：每 90 秒补充 1 个，突发 10
+sensitive_refill_seconds = 90
+sensitive_burst = 10
+
+[email_code]
+# 验证码有效期与同邮箱同用途的重发冷却
+ttl_minutes = 10
+cooldown_seconds = 60
+
+[cache]
+# 已登录请求的用户信息缓存 TTL，以及过期条目清理间隔
+user_ttl_seconds = 30
+cleanup_interval_seconds = 300
+
+[smtp]
+# host 留空则验证码只写入服务端日志（开发模式）
+host = ""
+port = 587
+tls = true
+username = ""
+password = ""
+# 发件地址，留空回退到 username
+from = ""
+from_name = ""
+timeout_seconds = 20
+
+[search]
+# 不配置时仍可使用文档关键词搜索；配置后后台自动生成公开文档的语义索引。
+# endpoint 是完整的 embedding HTTP 接口地址，不是服务根地址。
+endpoint = ""
+model = ""
+
+# 必须填写服务实际返回的向量维度；修改模型或维度将重新索引。
+dimensions = 0
+# 密钥只通过 EMBEDDING_API_KEY 环境变量提供。
+
+[ai_summary]
+# 完整的兼容 Chat Completions 接口地址，例如 https://你的服务/v1/chat/completions。
+# 也可用 AI_SUMMARY_ENDPOINT 和 AI_SUMMARY_MODEL 环境变量覆盖。
+# 密钥只配置在后端环境变量 AI_SUMMARY_API_KEY，不要写入此文件。
+endpoint = ""
+model = ""

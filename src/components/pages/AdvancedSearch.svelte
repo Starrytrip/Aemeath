@@ -3,141 +3,105 @@ import I18nKey from "@i18n/i18nKey";
 import { i18n } from "@i18n/translation";
 import { onMount } from "svelte";
 import Icon from "@/components/common/Icon.svelte";
-import { loadPagefind } from "@/utils/pagefind";
 import type { SearchResult } from "@/global";
+import { type ArticleSuggestion, searchPublishedArticles } from "@/utils/navbar-search";
 import { url as formatUrl } from "@/utils/url-utils";
 
 export let title = i18n(I18nKey.search);
 export let description = "";
-type Post = {
-	url: string;
-	title: string;
-	description: string;
-	image: string;
-	published: number;
-	category: string;
-	tags: string[];
-	searchText: string;
+type Result = SearchResult & { image?: string; published?: number; category?: string; tags?: string[]; page?: boolean };
+type DocumentSearchResponse = {
+	mode: "keyword" | "semantic" | "hybrid";
+	warning: string | null;
+	results: Array<{ document_id: number; title: string; url: string; heading: string; excerpt: string; category: string; tags: string[] }>;
 };
-type Result = SearchResult & {
-	image?: string;
-	published?: number;
-	category?: string;
-	tags?: string[];
-	page?: boolean;
-};
-let keyword = "",
-	results: Result[] = [],
-	loading = false,
-	ready = false,
-	timer: NodeJS.Timeout,
-	cache: Post[] | null = null;
+let searchSource: "articles" | "documents" = "articles";
+let searchNotice = "";
+let searchError = "";
+let generation = 0;
+let activeRequest: AbortController | null = null;
+let documentStatus: { documents: number; semantic_configured: boolean; semantic_ready: number } | null = null;
+let keyword = "";
+let results: Result[] = [];
+let total = 0;
+let loading = false;
+let loadingMore = false;
+let ready = false;
+let timer: ReturnType<typeof setTimeout>;
 
-const esc = (v: string) =>
-	v.replace(
-		/[&<>"']/g,
-		(c) =>
-			({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[
-				c
-			] || c,
-	);
+const esc = (v: string) => v.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c] || c);
 const hi = (v: string, q: string) => {
 	const w = q.trim();
 	if (!w) return esc(v);
 	const e = w.replace(/[.*+?^$()|[\]\\{}]/g, "\\$&");
-	return esc(v).replace(new RegExp(e, "gi"), (m) => "<mark>" + m + "</mark>");
+	return esc(v).replace(new RegExp(e, "gi"), (m) => `<mark>${m}</mark>`);
 };
 const clean = (v: string) => v.replace(/<[^>]*>/g, "");
-const norm = (v: string) => {
-	try {
-		return new URL(v, window.location.origin).pathname.replace(/\/?$/, "/");
-	} catch {
-		return v;
-	}
-};
-const date = (v?: number) =>
-	v
-		? new Intl.DateTimeFormat("zh-CN", {
-				year: "numeric",
-				month: "short",
-				day: "numeric",
-			}).format(new Date(v))
-		: "";
-const posts = async () => {
-	if (cache) return cache;
-	const r = await fetch(formatUrl("/api/allPostMeta.json"));
-	cache = r.ok ? await r.json() : [];
-	return cache as Post[];
-};
-const local = async (q: string): Promise<Result[]> =>
-	(await posts())
-		.filter((p) =>
-			[p.searchText, p.title, p.description, p.category, ...p.tags]
-				.join(" ")
-				.toLowerCase()
-				.includes(q.trim().toLowerCase()),
-		)
-		.map((p) => ({
-			url: p.url,
-			meta: { title: hi(p.title, q) },
-			excerpt: hi(p.description || p.title, q),
-			image: p.image,
-			published: p.published,
-			category: p.category,
-			tags: p.tags,
-		}));
-const enrich = async (items: SearchResult[]): Promise<Result[]> => {
-	const map = new Map((await posts()).map((p) => [norm(p.url), p]));
-	return items.map((item) => {
-		const p = map.get(norm(item.url));
-		return p
-			? {
-					...item,
-					image: p.image,
-					published: p.published,
-					category: p.category,
-					tags: p.tags,
-				}
-			: { ...item, page: true };
-	});
-};
+const date = (v?: number) => v ? new Intl.DateTimeFormat("zh-CN", {year:"numeric", month:"short", day:"numeric"}).format(new Date(v)) : "";
+const articleResult = (item: ArticleSuggestion, q: string): Result => ({
+	url: item.url, meta: {title: hi(item.title, q)}, excerpt: hi(item.description || item.excerpt || item.title, q),
+	image: item.cover_url, published: Date.parse(`${item.date}T12:00:00`), category: item.category, tags: item.tags,
+});
 
 const search = async () => {
-	if (!ready || !keyword.trim()) {
-		results = [];
-		return;
-	}
+	const request = ++generation;
+	activeRequest?.abort();
+	loadingMore = false;
+	searchNotice = "";
+	searchError = "";
+	const q = keyword.trim();
+	if (!ready || !q) { results = []; total = 0; loading = false; return; }
+	const controller = new AbortController();
+	activeRequest = controller;
 	loading = true;
 	try {
-		let found: SearchResult[] = [];
-		const pagefind = await loadPagefind();
-		if (pagefind) {
-			const r = await pagefind.search(keyword);
-			found = await Promise.all(
-				r.results.map(async (item) => {
-					const { content: _content, ...data } = await item.data();
-					return data;
-				}),
-			);
+		if (searchSource === "documents") {
+			const response = await fetch(`/api/v1/search?q=${encodeURIComponent(q)}&mode=hybrid&limit=20`, { cache: "no-store", signal: AbortSignal.any([controller.signal, AbortSignal.timeout(40_000)]) });
+			if (!response.ok) throw new Error("文档搜索暂不可用，请稍后重试。");
+			const data: DocumentSearchResponse = await response.json();
+			if (request !== generation) return;
+			results = data.results.map((item) => ({ url: item.url, meta: {title: hi(item.title,q)}, excerpt: hi([item.heading,item.excerpt].filter(Boolean).join(" · "),q), category:item.category,tags:item.tags }));
+			total = results.length;
+			searchNotice = data.warning || (data.mode === "hybrid" ? "按关键词与语义综合排序" : data.mode === "semantic" ? "按语义相关度排序" : "按关键词相关度排序");
+		} else {
+			const data = await searchPublishedArticles(q, { limit: 20, signal: controller.signal });
+			if (request !== generation) return;
+			results = data.items.map((item) => articleResult(item,q));
+			total = data.total;
 		}
-		results = found.length ? await enrich(found) : await local(keyword);
-	} catch (e) {
-		console.error("Search error:", e);
-		results = [];
-	} finally {
-		loading = false;
-	}
+	} catch {
+		if (request !== generation) return;
+		results = []; total = 0;
+		searchError = searchSource === "documents" ? "文档搜索暂不可用，请稍后重试。" : "文章搜索暂不可用，请稍后重试。";
+	} finally { if (request === generation) loading = false; }
 };
+
+const loadMore = async () => {
+	if (loading || loadingMore || searchSource !== "articles" || results.length >= total) return;
+	const request = generation;
+	const q = keyword.trim();
+	const controller = new AbortController();
+	activeRequest = controller;
+	loadingMore = true;
+	searchError = "";
+	try {
+		const data = await searchPublishedArticles(q, { limit:20, offset:results.length, signal:controller.signal });
+		if (request !== generation) return;
+		results = [...results, ...data.items.map((item) => articleResult(item,q)).filter((item) => !results.some((old) => old.url === item.url))];
+		total = data.total;
+	} catch {
+		if (request === generation) searchError = "更多文章加载失败，请重试。";
+	} finally { if (request === generation) loadingMore = false; }
+};
+const changeSource = (source: "articles" | "documents") => { searchSource = source; clearTimeout(timer); void search(); };
 onMount(() => {
 	ready = true;
 	keyword = new URLSearchParams(location.search).get("q") || "";
 	if (keyword) void search();
-	return () => clearTimeout(timer);
+	void fetch("/api/v1/search/status", { signal: AbortSignal.timeout(5000) }).then(async (response) => { if (response.ok) documentStatus = await response.json(); }).catch(() => {});
+	return () => {clearTimeout(timer); generation++; activeRequest?.abort();};
 });
-const input = () => {
-	clearTimeout(timer);
-	timer = setTimeout(search, 260);
-};
+const input = () => { clearTimeout(timer); generation++; activeRequest?.abort(); loadingMore = false; timer = setTimeout(search, searchSource === "documents" ? 800 : 260); };
 </script>
 
 <section class="search-page" aria-labelledby="search-page-title">
@@ -145,13 +109,20 @@ const input = () => {
   <p class="eyebrow"><i></i>RAIN'S ARCHIVE</p>
   <h1 id="search-page-title">{title}</h1>
   <p>{description || "从项目复盘、博客改造到零散思考，把写过的内容重新找回来。"}</p>
+  <div class="mt-5 flex flex-wrap items-center gap-2" role="group" aria-label="搜索范围">
+   <button type="button" class="cursor-pointer rounded-full border border-(--line-divider) px-4 py-2 text-sm text-(--content-meta) aria-pressed:border-(--primary) aria-pressed:bg-(--btn-regular-bg) aria-pressed:text-(--primary)" aria-pressed={searchSource === "articles"} on:click={() => changeSource("articles")}>文章搜索</button>
+   <button type="button" class="cursor-pointer rounded-full border border-(--line-divider) px-4 py-2 text-sm text-(--content-meta) aria-pressed:border-(--primary) aria-pressed:bg-(--btn-regular-bg) aria-pressed:text-(--primary)" aria-pressed={searchSource === "documents"} on:click={() => changeSource("documents")}>文档搜索</button>
+   {#if searchSource === "documents" && documentStatus}<span class="text-xs text-(--content-meta)">已收录 {documentStatus.documents} 篇{documentStatus.semantic_configured ? ` · ${documentStatus.semantic_ready} 篇支持语义搜索` : " · 关键词搜索"}</span>{/if}
+  </div>
   <div class="field">
    <label class="sr-only" for="search-input">{title}</label><Icon icon="material-symbols:search-rounded" />
-   <input id="search-input" type="search" placeholder="输入关键词，搜索文章与页面" bind:value={keyword} on:input={input} />
-   <small>{keyword ? (loading ? "正在检索" : "找到 "+results.length+" 条") : "试试：AI、自动上架、博客"}</small>
+   <input id="search-input" type="search" placeholder={searchSource === "documents" ? "描述你想找的内容，例如：如何降低后端内存" : "输入关键词，搜索已发布文章"} maxlength="200" bind:value={keyword} on:input={input} />
+   <small>{keyword ? (loading ? "正在检索" : "找到 "+total+" 条") : "试试：AI、自动上架、博客"}</small>
   </div>
  </header>
- <div class="result-head">{#if keyword && !loading && results.length}<p><strong>{results.length}</strong> 条和「{keyword}」有关的记录</p><span>文章和站内页面按相关度排列</span>{:else if !keyword}<p>输入一个词，开始翻找这座小小的内容档案室。</p>{/if}</div>
+ {#if searchNotice}<p class="mt-4 text-sm text-(--content-meta)" role="status">{searchNotice}</p>{/if}
+ {#if searchError}<p class="mt-4 text-sm text-red-500" role="alert">{searchError}</p>{/if}
+ <div class="result-head">{#if keyword && !loading && results.length}<p><strong>{total}</strong> 条和「{keyword}」有关的记录</p><span>{searchSource === "articles" ? "已发布文章按相关度排列" : "文档按相关度排列"}</span>{:else if !keyword}<p>输入一个词，开始翻找这座小小的内容档案室。</p>{/if}</div>
  {#if loading}
   <div class="empty"><Icon icon="svg-spinners:ring-resize" /><p>正在从文章里寻找线索…</p></div>
  {:else if results.length}
@@ -167,10 +138,11 @@ const input = () => {
     </a>
    </article>
   {/each}</div>
+  {#if searchSource === "articles" && results.length < total}<div class="mt-6 text-center"><button type="button" class="rounded-full border border-(--line-divider) bg-(--card-bg) px-6 py-3 text-sm text-(--primary)" disabled={loadingMore} on:click={loadMore}>{loadingMore ? "正在加载…" : "加载更多文章"}</button></div>{/if}
  {:else if keyword}
   <div class="empty"><Icon icon="material-symbols:travel-explore-rounded" /><h2>暂时没找到这条线索</h2><p>换一个更短的关键词试试，或从“AI”“博客”“自动化”这类主题开始。</p></div>
  {:else}
-  <div class="empty"><Icon icon="material-symbols:auto-stories-rounded" /><h2>从一段关键词开始</h2><p>搜索会覆盖文章标题、摘要、分类与标签。</p></div>
+  <div class="empty"><Icon icon="material-symbols:auto-stories-rounded" /><h2>从一段关键词开始</h2><p>{searchSource === "documents" ? "搜索后端已收录的文档正文与章节；启用语义搜索后也能按意思查找。" : "搜索已发布文章的标题、摘要、分类、标签与正文。"}</p></div>
  {/if}
 </section>
 

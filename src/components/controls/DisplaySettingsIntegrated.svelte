@@ -38,19 +38,21 @@ import {
 	setCardDecorationMode,
 	setGradientEnabled,
 	setHue,
+	setNationalDayThemeEnabled,
 	setNavbarBehavior,
 	setOverlayBlur,
 	setOverlayCardOpacity,
 	setOverlayOpacity,
 	setSakuraEnabled,
 	setSelectedWallpaperIndex,
-	setNationalDayThemeEnabled,
 	setWallpaperMode,
 	setWavesEnabled,
 } from "@utils/setting-utils";
 import { onMount } from "svelte";
 import Icon from "@/components/common/Icon.svelte";
 import FontSwitch from "@/components/controls/FontSwitch.svelte";
+import SiteThemePicker from "@/components/controls/SiteThemePicker.svelte";
+import { siteThemeConfig } from "@/config/siteThemeConfig";
 import { backgroundWallpaper, sakuraConfig, siteConfig } from "@/config";
 import {
 	alternateHomepageWallpaper,
@@ -119,14 +121,13 @@ const nationalDayWallpaperSources = new Set([
 	alternateHomepageWallpaper,
 	mobileHomepageWallpaper,
 ]);
-const allBuiltInWallpapers: WallpaperOption[] = configuredWallpapers.desktop.map(
-	(src, index) => ({
+const allBuiltInWallpapers: WallpaperOption[] =
+	configuredWallpapers.desktop.map((src, index) => ({
 		index,
 		src,
 		preview: getWallpaperPreview(src),
 		label: `${i18n(I18nKey.builtinWallpaper)} ${index + 1}`,
-	}),
-);
+	}));
 
 let hue = $state(getHue());
 let nationalDayThemeEnabled = $state(getNationalDayThemeEnabled());
@@ -159,9 +160,9 @@ let cardDecorationMode = $state(getStoredCardDecorationMode());
 let navbarBehavior = $state(getStoredNavbarBehavior());
 const defaultHue = getDefaultHue();
 let wallpaperMode: WALLPAPER_MODE = $state(backgroundWallpaper.mode);
-const defaultWallpaperMode = backgroundWallpaper.mode;
+const defaultWallpaperMode = typeof window!=="undefined" ? (window.__yukinaSiteDefaults?.appearance?.wallpaper_mode || backgroundWallpaper.mode) : backgroundWallpaper.mode;
 let currentLayout: "list" | "grid" = $state("list");
-const defaultLayout = siteConfig.postListLayout.defaultMode;
+const defaultLayout = typeof window!=="undefined" ? (window.__yukinaSiteDefaults?.appearance?.list_mode || siteConfig.postListLayout.defaultMode) : siteConfig.postListLayout.defaultMode;
 const mobileDefaultLayout =
 	siteConfig.postListLayout.mobileDefaultMode || defaultLayout;
 let mounted = $state(false);
@@ -204,7 +205,7 @@ let selectedIntroTopBannerId = $state(
 let selectedIntroBottomBannerId = $state(
 	homePortfolioIntroSettings.defaultBottomBannerId,
 );
-const defaultIntroEnabled = homePortfolioIntroSettings.defaultEnabled;
+const defaultIntroEnabled = typeof window!=="undefined" ? (window.__yukinaSiteDefaults?.appearance?.intro_enabled ?? homePortfolioIntroSettings.defaultEnabled) : homePortfolioIntroSettings.defaultEnabled;
 const defaultIntroCharacterId = homePortfolioIntroSettings.defaultCharacterId;
 const defaultIntroTopBannerId = homePortfolioIntroSettings.defaultTopBannerId;
 const defaultIntroBottomBannerId =
@@ -507,9 +508,10 @@ function toggleSakuraEnabled() {
 
 function getStoredIntroEnabled() {
 	try {
-		return (
-			localStorage.getItem(homePortfolioIntroSettings.enabledStorageKey) !== "0"
+		const stored = localStorage.getItem(
+			homePortfolioIntroSettings.enabledStorageKey,
 		);
+		return stored === null ? defaultIntroEnabled : stored !== "0";
 	} catch {
 		return defaultIntroEnabled;
 	}
@@ -968,6 +970,15 @@ $effect(() => {
                 <span>偏好</span>
             </button>
     </nav>
+
+    {#if siteThemeConfig.enabled}
+    <div class="mt-2 mb-2 mobile-settings-section" class:mobile-settings-section-hidden={mobileSettingsTab !== "appearance"}>
+        <div class="flex gap-2 font-bold text-lg text-neutral-900 dark:text-neutral-100 transition relative ml-3 mb-2
+            before:w-1 before:h-4 before:rounded-md before:bg-(--primary)
+            before:absolute before:-left-3 before:top-1/2 before:-translate-y-1/2">站点主题</div>
+        <SiteThemePicker />
+    </div>
+    {/if}
 
     <!-- Font Settings Section -->
     {#if showFontSettings}

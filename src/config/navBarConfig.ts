@@ -1,3 +1,4 @@
+import {siteSnapshot} from "../utils/site-snapshot";
 import {
 	type NavBarConfig,
 	type NavBarLink,
@@ -34,8 +35,8 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		],
 	});
 
-	// 站点统计
-	links.push(LinkPresets.Analytics);
+	// 暂时隐藏站点统计入口，原页面保留。
+	links.push(LinkPresets.Talks);
 
 	// 友链
 	links.push(LinkPresets.Friends);
@@ -45,6 +46,8 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 
 	// 留言板
 	links.push(LinkPresets.Guestbook);
+
+	// 暂时隐藏聊天室入口。
 
 	// 我的及其子菜单
 	links.push({
@@ -92,8 +95,7 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 		],
 	});
 
-	// 开往：独立博客友链接力，放在“关于”右侧
-	links.push(LinkPresets.Travellings);
+	// 暂时隐藏开往入口。
 
 	// 文档链接
 	// links.push({
@@ -108,7 +110,7 @@ const getDynamicNavBarConfig = (): NavBarConfig => {
 
 // 导航搜索配置
 export const navBarSearchConfig: NavBarSearchConfig = {
-	method: NavBarSearchMethod.PageFind,
+	method: NavBarSearchMethod.Backend,
 };
 
 // ============================================================================
@@ -175,6 +177,11 @@ export const LinkPresets: Record<string, NavBarLink> = {
 		icon: "material-symbols:chat",
 		pageKey: "guestbook",
 	},
+	Chat: {
+		name: "聊天室",
+		url: "/chat/",
+		icon: "material-symbols:forum-rounded",
+	},
 	About: {
 		name: "关于我",
 		url: "/about/",
@@ -184,6 +191,11 @@ export const LinkPresets: Record<string, NavBarLink> = {
 		name: "动态表情",
 		url: "/lottie/",
 		icon: "material-symbols:auto-awesome-rounded",
+	},
+	Talks: {
+		name: "说说",
+		url: "/talks/",
+		icon: "material-symbols:chat",
 	},
 	Analytics: {
 		name: "站点统计",
@@ -221,3 +233,5 @@ export const LinkPresets: Record<string, NavBarLink> = {
 };
 
 export const navBarConfig: NavBarConfig = getDynamicNavBarConfig();
+
+if(siteSnapshot.navigation){navBarConfig.links=siteSnapshot.navigation.filter(l=>l.enabled!==false).map(l=>({...l,children:l.children?.filter(c=>c.enabled!==false)}));}

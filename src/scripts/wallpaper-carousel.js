@@ -1,7 +1,7 @@
 import { applyStoredSelectedWallpaper } from "@/utils/setting-utils";
 
 (function initBannerCarousel() {
-	if (document.documentElement.dataset.siteTheme !== "aemeath") return;
+	if (document.documentElement.dataset.siteTheme !== "yukina") return;
 	var container = document.getElementById("banner-images-container");
 	if (!container || container.dataset.carouselBound === "true") return;
 	container.dataset.carouselBound = "true";
@@ -83,7 +83,7 @@ import { applyStoredSelectedWallpaper } from "@/utils/setting-utils";
 			) &&
 			!document.documentElement.classList.contains("home-portfolio-intro-seen");
 		return (
-			document.documentElement.dataset.siteTheme === "aemeath" &&
+			document.documentElement.dataset.siteTheme === "yukina" &&
 			!document.documentElement.classList.contains(
 				"home-portfolio-intro-active",
 			) &&
@@ -294,7 +294,7 @@ import { applyStoredSelectedWallpaper } from "@/utils/setting-utils";
 
 	function loadSlideImage(slide) {
 		if (
-			document.documentElement.dataset.siteTheme !== "aemeath" ||
+			document.documentElement.dataset.siteTheme !== "yukina" ||
 			!isBannerWallpaperMode() ||
 			wallpaperWrapper?.classList.contains("non-home-wallpaper-hidden")
 		)

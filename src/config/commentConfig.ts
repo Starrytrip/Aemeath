@@ -1,8 +1,9 @@
 import type { CommentConfig } from "../types/commentConfig";
 
 export const commentConfig: CommentConfig = {
-	// 评论系统类型: none, twikoo, waline, giscus, disqus, artalk，默认为none，即不启用评论系统
-	type: "none",
+	// 评论系统类型: none, twikoo, waline, giscus, disqus, artalk, yukina，默认为none，即不启用评论系统
+	// yukina 为本站自建后端（backend/）提供的评论系统
+	type: "yukina",
 
 	//twikoo评论系统配置
 	twikoo: {
@@ -57,7 +58,7 @@ export const commentConfig: CommentConfig = {
 	giscus: {
 		// 设置 Giscus 评论系统仓库
 		repo: "Jarvis0227/Aemeath",
-		// 启用 Giscus 前，从 giscus.app 获取 Aemeath 仓库对应的 ID
+		// 启用 Giscus 前，从 giscus.app 获取 Yukina 仓库对应的 ID
 		repoId: "",
 		// 设置 Giscus 评论系统分类
 		category: "General",

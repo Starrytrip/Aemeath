@@ -5,29 +5,30 @@ interface Props {
 	pureStylesheets: string[];
 }
 
-const {
-	pureStylesheets,
-} = Astro.props;
+const { pureStylesheets } = Astro.props;
 ---
 
+<script is:inline src="/api/v1/site-bootstrap.js"></script>
 <meta name="astro-view-transitions-enabled" content="true" />
 <meta name="astro-view-transitions-fallback" content="swap" />
 <script is:inline define:vars={{ siteThemeConfig, pureStylesheets }}>
 	(() => {
 		const root = document.documentElement;
-		const valid = (value) => value === "aemeath" || value === "pure";
-		const requested = new URLSearchParams(window.location.search).get("siteTheme");
+		const normalize = (value) => value === "aemeath" ? "yukina" : value;
+		const valid = (value) => value === "yukina" || value === "pure";
+		const requested = normalize(new URLSearchParams(window.location.search).get("siteTheme"));
 		let saved;
 		try {
-			saved = localStorage.getItem("rainzt.site-theme.v1");
+			saved = normalize(localStorage.getItem("rainzt.site-theme.v1"));
+			if (valid(saved)) localStorage.setItem("rainzt.site-theme.v1", saved);
 			if (valid(requested)) localStorage.setItem("rainzt.site-theme.v1", requested);
 		} catch {
 			// The URL also supports theme selection when browser storage is blocked.
 			root.dataset.siteThemePersistence = "url";
 		}
 		const selected = siteThemeConfig.enabled
-			? (valid(requested) ? requested : valid(saved) ? saved : siteThemeConfig.defaultTheme)
-			: "aemeath";
+			? (valid(requested) ? requested : valid(saved) ? saved : (window.__yukinaSiteDefaults?.appearance?.theme || siteThemeConfig.defaultTheme))
+			: "yukina";
 		root.dataset.siteTheme = selected;
 		if (selected !== "pure") {
 			document.querySelector('[name="astro-view-transitions-enabled"]')?.remove();

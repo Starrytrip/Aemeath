@@ -1,16 +1,17 @@
+import {siteSnapshot} from "../utils/site-snapshot";
 import type { SakuraConfig } from "../types/effectsConfig";
 
 // 特效配置 - 集中管理所有动画特效
 
 export const sakuraConfig: SakuraConfig = {
 	// 是否启用樱花特效
-	enable: true,
+	enable: false,
 
 	// 是否允许用户在设置中切换
 	switchable: true,
 
 	// 樱花数量
-	sakuraNum: 21,
+	sakuraNum: 42,
 
 	// 樱花越界限制次数，-1为无限循环
 	limitTimes: -1,
@@ -56,3 +57,5 @@ export const sakuraConfig: SakuraConfig = {
 	// 层级，确保樱花在合适的层级显示
 	zIndex: 100,
 };
+
+if(siteSnapshot.appearance){sakuraConfig.enable=siteSnapshot.appearance.sakura_enabled;sakuraConfig.sakuraNum=siteSnapshot.appearance.sakura_count;}

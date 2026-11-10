@@ -1,11 +1,15 @@
 ---
 // Adapted from Astro Theme Pure's detailed PostPreview (Apache-2.0).
-import { render, type CollectionEntry } from "astro:content";
+import { type CollectionEntry, render } from "astro:content";
 import { Icon } from "astro-icon/components";
 import ImageWrapper from "@/components/common/ImageWrapper.astro";
 import { formatDateToYYYYMMDD } from "@/utils/date-utils";
 import { processCoverImageSync } from "@/utils/image-utils";
-import { getFileDirFromPath, getPostUrlBySlug, getTagUrl } from "@/utils/url-utils";
+import {
+	getFileDirFromPath,
+	getPostUrlBySlug,
+	getTagUrl,
+} from "@/utils/url-utils";
 
 interface Props {
 	entry: CollectionEntry<"posts">;

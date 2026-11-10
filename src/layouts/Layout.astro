@@ -4,7 +4,7 @@ import La51Analytics from "@components/analytics/La51Analytics.astro";
 import MicrosoftClarity from "@components/analytics/MicrosoftClarity.astro";
 import UmamiAnalytics from "@components/analytics/UmamiAnalytics.astro";
 import UmamiMetrics from "@components/analytics/UmamiMetrics.astro";
-import FriendsRuntimeManager from "@components/friends/FriendsRuntimeManager.astro";
+import LoginModal from "@components/controls/LoginModal.astro";
 import ChangelogManager from "@components/features/ChangelogManager.astro";
 import FancyboxManager from "@components/features/FancyboxManager.astro";
 import FontSetup from "@components/features/FontSetup.astro";
@@ -12,9 +12,10 @@ import MusicManager from "@components/features/MusicManager.astro";
 import RecommendedStarFlowManager from "@components/features/RecommendedStarFlowManager.astro";
 import SakuraEffect from "@components/features/SakuraEffect.astro";
 import VisitorDefaultsSync from "@components/features/VisitorDefaultsSync.astro";
-import WallpaperBootstrap from "@components/features/WallpaperBootstrap.astro";
 import WalineManager from "@components/features/WalineManager.astro";
+import WallpaperBootstrap from "@components/features/WallpaperBootstrap.astro";
 import WelcomeToast from "@components/features/WelcomeToast.astro";
+import FriendsRuntimeManager from "@components/friends/FriendsRuntimeManager.astro";
 import ConfigCarrier from "@components/layout/ConfigCarrier.astro";
 import ThemeBootstrap from "@/components/themes/ThemeBootstrap.astro";
 
@@ -25,6 +26,7 @@ import {
 	profileConfig,
 	siteConfig,
 } from "@/config";
+import { nationalDayTheme } from "@/config/nationalDayTheme";
 import {
 	BANNER_HEIGHT,
 	BANNER_HEIGHT_EXTEND,
@@ -35,7 +37,6 @@ import { defaultFavicons } from "@/constants/icon";
 import type { Favicon } from "@/types/config";
 import { isHomePage } from "@/utils/layout-utils";
 import { url } from "@/utils/url-utils";
-import { nationalDayTheme } from "@/config/nationalDayTheme";
 
 import "@/styles/main.css";
 import "@/styles/variables.styl";
@@ -621,6 +622,20 @@ const canonicalUrl = new URL(
         }
       })();
     </script>
+    <script is:inline>
+      (() => {
+        const root = document.documentElement;
+        if (root.dataset.siteTheme !== "yukina" || root.dataset.wallpaperMode === "none") return;
+        root.dataset.managedBackgroundPending = "true";
+        // Start before the wallpaper markup is parsed; the runtime reuses this request.
+        window.__managedBackgroundsRequest = fetch("/api/v1/backgrounds", { signal: AbortSignal.timeout(5000) })
+          .then(response => response.ok ? response.json() : [])
+          .then(rows => Array.isArray(rows) ? rows : [])
+          .catch(() => []);
+        // Restore the built-in wallpaper even if the client bundle fails to load.
+        window.setTimeout(() => { delete root.dataset.managedBackgroundPending; }, 8000);
+      })();
+    </script>
     <WallpaperBootstrap enabled={shouldPreloadWallpaper} />
     <style
       define:vars={{
@@ -662,7 +677,6 @@ const canonicalUrl = new URL(
     <ConfigCarrier />
     <MusicManager />
     <slot />
-    <div id="route-white-screen" aria-hidden="true"></div>
 
 
 
@@ -678,6 +692,9 @@ const canonicalUrl = new URL(
     <RecommendedStarFlowManager />
     <FriendsRuntimeManager />
     <WalineManager />
+
+    <!-- 登录浮层：由导航栏登录按钮触发 -->
+    <LoginModal />
   </body>
 </html>
 
@@ -849,7 +866,7 @@ const canonicalUrl = new URL(
 	if (document.documentElement.dataset.siteTheme === "pure") {
 		void import("@/scripts/pure-layout-runtime");
 	} else {
-		void import("@/scripts/aemeath-layout-runtime");
+		void import("@/scripts/yukina-layout-runtime");
 	}
 </script>
 
@@ -1048,3 +1065,5 @@ const canonicalUrl = new URL(
     scheduleServerMetricsInit();
   })();
 </script>
+
+<script>import "@/scripts/site-runtime"; import "@/scripts/managed-backgrounds"; import "@/scripts/visit-tracker";</script>

@@ -1,0 +1,6 @@
+---
+import ManagedPage from "@/components/pages/ManagedPage.svelte";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+export function getStaticPaths(){return ["about-open-source","friends"].map(slug=>({params:{slug}}));}
+---
+<MainGridLayout title="页面"><ManagedPage slug={Astro.params.slug} client:load /></MainGridLayout>

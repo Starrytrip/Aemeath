@@ -31,6 +31,9 @@ const ICON_SETS = {
 // they cannot be discovered from a Svelte template scan. Keep them in the same
 // generated inline-SVG bundle instead of fetching brand assets at runtime.
 const EXTRA_ICONS = [
+	// Retain icons that may still be referenced by saved navigation settings.
+	"fa7-solid:arrow-right",
+	"material-symbols:search",
 	"material-symbols:smartphone",
 	"material-symbols:phone-iphone",
 	"simple-icons:android",

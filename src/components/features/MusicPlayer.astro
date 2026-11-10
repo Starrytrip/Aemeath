@@ -593,7 +593,13 @@ const widgetId =
     }
 
     // ── Full sync from manager state (for late-mount) ────────
+    function syncLyricsSetting() {
+        var enabled = mgr.getState().config.showLyrics;
+        ui.btnLrc.classList.toggle("hidden", !enabled);
+        if (!enabled) {ui.lrcDrawer.style.gridTemplateRows = "0fr"; ui.lrcDrawer.classList.add("opacity-0");}
+    }
     function syncAll() {
+        syncLyricsSetting();
         var s = mgr.getState();
         if (!s.initialized) return;
 
@@ -641,6 +647,7 @@ const widgetId =
     }
 
     on('fm:init', function (e) {
+        syncLyricsSetting();
         var d = e.detail;
         setLoading(false);
         if (d.playlist.length > 0) {

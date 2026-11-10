@@ -8,7 +8,11 @@ interface Props {
 }
 
 const { items, routeMode = false } = Astro.props;
-const availableItems = items.filter((item) => !item.temporarilyUnavailable && (!item.visibilityStatus || item.visibilityStatus === "normal"));
+const availableItems = items.filter(
+	(item) =>
+		!item.temporarilyUnavailable &&
+		(!item.visibilityStatus || item.visibilityStatus === "normal"),
+);
 ---
 
 <div

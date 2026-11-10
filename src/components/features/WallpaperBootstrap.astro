@@ -28,7 +28,7 @@ const wallpaperConfig = {
 <script is:inline define:vars={{ wallpaperConfig }}>
 	(() => {
 		const root = document.documentElement;
-		if (!wallpaperConfig.enabled || root.dataset.siteTheme !== "aemeath" || root.dataset.wallpaperMode === "none") return;
+		if (!wallpaperConfig.enabled || root.dataset.siteTheme !== "yukina" || root.dataset.wallpaperMode === "none") return;
 		const read = (key) => {
 			try { return localStorage.getItem(key); } catch { return null; }
 		};

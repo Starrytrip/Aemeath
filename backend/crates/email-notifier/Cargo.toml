@@ -1,0 +1,10 @@
+[package]
+name = "yukina-email-notifier"
+version.workspace = true
+edition.workspace = true
+
+[dependencies]
+yukina-shared.workspace = true
+lettre.workspace = true
+tokio.workspace = true
+tracing.workspace = true

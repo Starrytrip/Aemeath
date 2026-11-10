@@ -1,8 +1,11 @@
 import type { BackgroundWallpaperConfig } from "@/types/backgroundWallpaper";
 
-export const homepageWallpaper = "/assets/images/wallpaper/homepage-anniversary-fireworks-20260930.webp";
-export const alternateHomepageWallpaper = "/assets/images/wallpaper/homepage-anniversary-blossoms.webp";
-export const mobileHomepageWallpaper = "/assets/images/wallpaper/homepage-anniversary-mobile-20260930.webp";
+export const homepageWallpaper =
+	"/assets/images/wallpaper/homepage-anniversary-fireworks-20260930.webp";
+export const alternateHomepageWallpaper =
+	"/assets/images/wallpaper/homepage-anniversary-blossoms.webp";
+export const mobileHomepageWallpaper =
+	"/assets/images/wallpaper/homepage-anniversary-mobile-20260930.webp";
 const originalWallpaperImages = Array.from(
 	{ length: 24 },
 	(_, index) =>
@@ -33,8 +36,8 @@ const mobileOnlyWutheringWavesImages = Array.from(
 		`/assets/images/wallpaper/wallpaper-mobile-${String(index + 1).padStart(2, "0")}.webp`,
 );
 const mobileWallpaperImages = [
- mobileHomepageWallpaper,
- ...mobileOnlyWutheringWavesImages,
+	mobileHomepageWallpaper,
+	...mobileOnlyWutheringWavesImages,
 	...wutheringWavesWallpaperImages,
 	...otherWallpaperImages,
 ];

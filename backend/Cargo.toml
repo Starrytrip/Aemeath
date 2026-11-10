@@ -1,0 +1,63 @@
+[workspace]
+resolver = "2"
+members = ["crates/*"]
+default-members = ["crates/server"]
+
+[workspace.package]
+version = "0.1.0"
+edition = "2021"
+
+[workspace.dependencies]
+tempfile = "3"
+# Web 框架
+axum = { version = "0.8", features = ["multipart"] }
+axum-extra = { version = "0.10", features = ["cookie"] }
+tokio = { version = "1", features = ["full"] }
+tower-http = { version = "0.6", features = ["cors", "trace"] }
+
+# 图片解码 / 重编码（上传头像与封面）
+image = "0.25"
+
+# 数据库 ORM（底层 sqlx-sqlite；业务代码统一走 sea-orm API）
+sea-orm = { version = "1.1", features = ["sqlx-sqlite", "runtime-tokio", "macros", "with-chrono"] }
+
+# 序列化
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+
+# 认证
+jsonwebtoken = "9"
+bcrypt = "0.16"
+
+# 时间与随机
+chrono = { version = "0.4", features = ["serde"] }
+rand = "0.8"
+
+# 哈希 / 编码
+sha2 = "0.10"
+hex = "0.4"
+
+# 配置与日志
+dotenvy = "0.15"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+thiserror = "2"
+governor = "0.10.4"
+lettre = { version = "0.11", default-features = false, features = ["builder", "smtp-transport", "rustls-tls"] }
+toml = "0.8"
+dashmap = "6.2.1"
+# IP 离线归属地解析（xdb 数据放 data/ip2region.xdb，缺失时回退脱敏 IP）
+ip2region = "0.1"
+sqlite-vec = "=0.1.6"
+libsqlite3-sys = "0.30.1"
+reqwest = { version = "0.12", default-features = false, features = ["json", "rustls-tls"] }
+pulldown-cmark = "0.13"
+quick-xml = "0.37.5"
+tokio-util = { version = "0.7", features = ["io"] }
+tower = { version = "0.5", features = ["util"] }
+yukina-shared = { path = "crates/shared" }
+yukina-store = { path = "crates/store" }
+yukina-embedding = { path = "crates/embedding" }
+yukina-runtime = { path = "crates/runtime" }
+yukina-email-notifier = { path = "crates/email-notifier" }
+yukina-media-service = { path = "crates/media-service" }

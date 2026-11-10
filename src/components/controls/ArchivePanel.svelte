@@ -4,7 +4,7 @@ import { onMount } from "svelte";
 import { siteConfig } from "@/config";
 import I18nKey from "@/i18n/i18nKey";
 import { i18n } from "@/i18n/translation";
-import { getPostUrlBySlug } from "@/utils/url-utils";
+import {loadPublishedArticles,articleLink} from "@/utils/published-articles";
 
 export let tags: string[] = [];
 export let categories: string[] = [];
@@ -22,6 +22,7 @@ interface Post {
 		tags: string[];
 		category?: string | null;
 		published: Date;
+        url?: string;
 	};
 }
 
@@ -36,6 +37,8 @@ interface ActiveFilter {
 }
 
 let groups: Group[] = [];
+let error = "";
+let loading = true;
 let activeFilters: ActiveFilter[] = [];
 let primaryFilter: ActiveFilter | null = null;
 let secondaryFilters: ActiveFilter[] = [];
@@ -98,7 +101,9 @@ function formatFilterSummary(filters: ActiveFilter[]) {
 }
 
 onMount(async () => {
-	let filteredPosts: Post[] = sortedPosts;
+	try { sortedPosts = (await loadPublishedArticles()).map(p=>({id:p.slug,data:{title:p.title,tags:p.tags,category:p.category,published:new Date(p.date),url:articleLink(p)}})); } catch(e) {error=e instanceof Error?e.message:"归档加载失败";loading=false;return;}
+ loading=false;
+ let filteredPosts: Post[] = sortedPosts;
 	const currentFilters: ActiveFilter[] = [];
 
 	if (categories.length > 0) {
@@ -195,6 +200,8 @@ onMount(async () => {
 	}
 });
 </script>
+{#if loading}<p class="card-base p-8" role="status">正在加载文章…</p>{/if}
+{#if error}<p class="card-base p-8" role="alert">{error}</p>{/if}
 
 <div class="card-base px-8 py-6">
 	{#if primaryFilter}
@@ -248,7 +255,7 @@ onMount(async () => {
 			{#if !collapsedYears.has(group.year)}
 			{#each group.posts as post}
 				<a
-						href={getPostUrlBySlug(post.id)}
+						href={post.data.url || `/reader/?slug=${encodeURIComponent(post.id)}`}
 						aria-label={post.data.title}
 						class="group btn-plain block! h-10 w-full rounded-lg hover:text-[initial]"
 				>

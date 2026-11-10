@@ -98,6 +98,7 @@ const showTitle = widgetConfig?.showTitle !== false;
   document.addEventListener("astro:page-load", () => {
     setTimeout(initSidebarTOC, 100);
   });
+  document.addEventListener("yukina:article-loaded", initSidebarTOC);
   
   // 浏览器导航事件
   window.addEventListener("popstate", () => {

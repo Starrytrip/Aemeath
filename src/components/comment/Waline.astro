@@ -8,13 +8,19 @@ import {
 } from "@/config";
 import { serviceConfig } from "@/config/serviceConfig";
 
-const friendHosts = [...new Set(getEnabledFriends().flatMap((friend) => {
-	try {
-		return [new URL(friend.siteurl).hostname.toLowerCase().replace(/^www\./u, "")];
-	} catch {
-		return [];
-	}
-}))];
+const friendHosts = [
+	...new Set(
+		getEnabledFriends().flatMap((friend) => {
+			try {
+				return [
+					new URL(friend.siteurl).hostname.toLowerCase().replace(/^www\./u, ""),
+				];
+			} catch {
+				return [];
+			}
+		}),
+	),
+];
 
 interface Props {
 	path: string;

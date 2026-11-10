@@ -1,3 +1,4 @@
+import {siteSnapshot} from "../utils/site-snapshot";
 import type { SiteConfig } from "@/types/siteConfig";
 
 // 定义站点语言
@@ -6,30 +7,22 @@ const SITE_LANG = "zh_CN";
 
 export const siteConfig: SiteConfig = {
 	// 站点标题
-	title: "Aemeath",
+	title: "Yukina",
 
 	// 站点副标题
 	subtitle: "请填写自己的站点副标题",
 
-	// Aemeath 主题版本
+	// Yukina 主题版本
 	themeVersion: "V4.3.0",
 
 	// 站点 URL
 	site_url: "https://example.com",
 
 	// 站点描述
-	description:
-		"基于 Astro 与 Svelte 的个人博客，请填写自己的站点介绍。",
+	description: "基于 Astro 与 Svelte 的个人博客，请填写自己的站点介绍。",
 
 	// 站点关键词
-	keywords: [
-		"Aemeath",
-		"Astro",
-		"ACGN",
-		"博客",
-		"技术博客",
-		"静态博客",
-	],
+	keywords: ["Yukina", "Astro", "ACGN", "博客", "技术博客", "静态博客"],
 
 	// 主题色
 	themeColor: {
@@ -85,10 +78,10 @@ export const siteConfig: SiteConfig = {
 		logo: {
 			type: "image",
 			value: "/assets/ai-xiaoai-avatar.png?v=20261028",
-			alt: "Aemeath",
+			alt: "Yukina",
 		},
 		// 导航栏标题
-		title: "Aemeath",
+		title: "Yukina",
 		// 全宽导航栏，导航栏是否占满屏幕宽度
 		widthFull: false,
 		// 导航菜单对齐方式，left：左对齐，center：居中
@@ -236,3 +229,6 @@ export const siteConfig: SiteConfig = {
 	// 站点语言，在本配置文件顶部SITE_LANG定义
 	lang: SITE_LANG,
 };
+
+if(siteSnapshot.basic){const b=siteSnapshot.basic;siteConfig.title=b.title;siteConfig.subtitle=b.subtitle;siteConfig.description=b.description;siteConfig.keywords=b.keywords.split(",").map(s=>s.trim()).filter(Boolean);siteConfig.site_url=b.site_url;siteConfig.siteStartDate=b.start_date;siteConfig.navbar.title=b.title;siteConfig.navbar.logo={type:"image",value:b.logo,alt:b.title};siteConfig.favicon=[{src:b.favicon}];}
+if(siteSnapshot.appearance){const a=siteSnapshot.appearance;siteConfig.themeColor.hue=a.hue;siteConfig.themeColor.defaultMode=a.mode;siteConfig.postListLayout.defaultMode=a.list_mode;siteConfig.pagination.postsPerPage=a.posts_per_page;}

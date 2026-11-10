@@ -1,0 +1,8 @@
+---
+import TalksFeed from "@/components/pages/TalksFeed.svelte";
+import { profileConfig } from "@/config";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+---
+<MainGridLayout title="说说" description="日常、灵感与此刻的心情。">
+ <TalksFeed client:load author={profileConfig.name} avatar={profileConfig.avatar || "/favicon/favicon-light-192.png"} />
+</MainGridLayout>

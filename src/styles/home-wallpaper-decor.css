@@ -40,24 +40,8 @@ html.is-page-transitioning .home-wallpaper-decor {
 	opacity: 0;
 }
 
-@keyframes home-wallpaper-backdrop-enter {
-	from {
-		opacity: 0;
-	}
-	to {
-		opacity: 1;
-	}
-}
-
+/* Keep the wallpaper opaque while the card and stickers animate in. */
 #wallpaper-wrapper.homepage-fullscreen-decor {
-	animation: none;
-}
-
-#wallpaper-wrapper.homepage-fullscreen-decor.home-wallpaper-motion-ready {
-	animation: home-wallpaper-backdrop-enter 900ms ease-out both;
-}
-
-html.is-page-transitioning #wallpaper-wrapper.homepage-fullscreen-decor {
 	animation: none;
 }
 

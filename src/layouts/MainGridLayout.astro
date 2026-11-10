@@ -20,6 +20,7 @@ import CategoryBar from "@/components/layout/CategoryBar.astro";
 import PureShell from "@/components/themes/pure/PureShell.astro";
 import {
 	backgroundWallpaper,
+	homePortfolioIntroSettings,
 	live2dWidgetConfig,
 	sidebarLayoutConfig,
 	siteConfig,
@@ -388,7 +389,7 @@ const hasMultipleImages =
 	})();
 </script>
 
-<div id="aemeath-shell">
+<div id="yukina-shell">
 
 <!-- 为全屏壁纸模式添加body类 -->
 {shouldEnableTransparency && (
@@ -400,10 +401,17 @@ const hasMultipleImages =
 <!-- Navbar -->
 <slot slot="head" name="head"></slot>
 {isHomePageCheck && (
-	<script is:inline>
+	<script is:inline define:vars={{ introDefaultEnabled: homePortfolioIntroSettings.defaultEnabled, introEnabledStorageKey: homePortfolioIntroSettings.enabledStorageKey }}>
 		(() => {
+			let enabled = introDefaultEnabled;
 			try {
-				if (window.localStorage.getItem("rainzt.home-portfolio-intro-enabled.v1") === "0") {
+				const stored = window.localStorage.getItem(introEnabledStorageKey);
+				enabled = stored === null ? introDefaultEnabled : stored !== "0";
+			} catch {
+				// Fall back to the configured default when storage is unavailable.
+			}
+			try {
+				if (!enabled) {
 					document.documentElement.classList.add("home-portfolio-intro-disabled");
 				} else if (window.sessionStorage.getItem("rainzt.home-portfolio-intro-seen.v1") === "1") {
 					document.documentElement.classList.add("home-portfolio-intro-seen");
@@ -544,7 +552,7 @@ const hasMultipleImages =
     <!-- 壁纸轮播脚本（基于 CSS transition） -->
     {hasMultipleImages && (
     <script>
-	if (document.documentElement.dataset.siteTheme === "aemeath") {
+	if (document.documentElement.dataset.siteTheme === "yukina") {
 		void import("@/scripts/wallpaper-carousel");
 	}
 </script>
@@ -816,10 +824,10 @@ const hasMultipleImages =
                 {/* 携带网格布局类名，用于JS更新父容器 */}
                 <div id="grid-class-carrier" data-grid-class={gridCols} class="hidden"></div>
                 {/* 为每个页面提供一个隐藏的h1标题，用于SEO和可访问性 */}
-                <h1 class="sr-only" data-theme-only="aemeath">{title || siteConfig.title}</h1>
+                <h1 class="sr-only" data-theme-only="yukina">{title || siteConfig.title}</h1>
                 <div id="content-wrapper" class="onload-animation transition-leaving">
                     {showPostAiSummary && (
-                        <div class="post-ai-summary-shell" data-theme-only="aemeath">
+                        <div class="post-ai-summary-shell" data-theme-only="yukina">
                             <div class="banner-post-ai-summary post-ai-summary-inline mobile-post-ai-summary" role="note" aria-label="AI摘要，由 ChatGPT Sol 5.6 Max 提供">
                                 <div class="banner-post-ai-summary__label">
                                     <Icon is:inline name="material-symbols:auto-awesome-rounded" class="text-[1.05em]" />
@@ -927,38 +935,12 @@ const hasMultipleImages =
     transition: none;
   }
 
-  html.route-inner-to-home.is-animating.is-leaving :is(#left-sidebar, #swup-container, #right-sidebar) {
-    animation: route-shell-exit 320ms cubic-bezier(0.55, 0.055, 0.675, 0.19) both !important;
-  }
-
-  @keyframes route-shell-exit {
-    from { opacity: 1; transform: translateY(0) scale(1); }
-    to { opacity: 0; transform: translateY(-20px) scale(0.985); }
-  }
-
-  #route-white-screen {
-    position: fixed;
-    inset: 4.5rem 0 0;
-    z-index: 70;
-    background: #fff;
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
-  }
-
-  html.route-white-cover #route-white-screen {
-    opacity: 1;
-    visibility: visible;
-    pointer-events: auto;
-  }
-
-  html.route-white-cover #top-row {
-    z-index: 80;
-  }
-
-  html.route-white-cover.route-white-reveal #route-white-screen {
-    opacity: 0;
-    transition: opacity 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  /* Keep the outgoing page readable while Swup fetches the homepage. */
+  html.route-inner-to-home.is-animating.is-leaving :is(#left-sidebar, #swup-container, #right-sidebar, #content-wrapper) {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+    transition: none !important;
   }
 
   @keyframes route-content-enter {
@@ -969,7 +951,7 @@ const hasMultipleImages =
   /* Restore the shared homepage wallpaper after an inner-page navigation. */
   html.route-inner-to-home #wallpaper-wrapper {
     opacity: 0 !important;
-    transition: opacity 300ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+    transition: none !important;
   }
 
   html.route-inner-to-home.route-content-ready #wallpaper-wrapper {
@@ -979,10 +961,6 @@ const hasMultipleImages =
   @media (prefers-reduced-motion: reduce) {
     html.route-inner-to-home.is-animating.is-leaving :is(#left-sidebar, #swup-container, #right-sidebar) {
       animation: none !important;
-    }
-
-    html.route-white-cover.route-white-reveal #route-white-screen {
-      transition: none;
     }
 
     html:is(.route-home-to-inner, .route-inner-to-home).route-content-ready #content-wrapper {

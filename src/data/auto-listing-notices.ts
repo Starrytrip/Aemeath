@@ -10,5 +10,4 @@ export type AutoListingNotice = {
 	labels: Record<string, string>;
 };
 
-
 export const autoListingNotices: AutoListingNotice[] = [];

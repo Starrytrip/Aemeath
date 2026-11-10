@@ -30,7 +30,7 @@ export async function measureFriend(
 			method: "GET",
 			cache: "no-store",
 			redirect: "follow",
-			headers: { "user-agent": "Aemeath-friend-latency-probe/1.0" },
+			headers: { "user-agent": "Yukina-friend-latency-probe/1.0" },
 			signal: controller.signal,
 		});
 		// Stop timing at the headers; do not download whole homepages.

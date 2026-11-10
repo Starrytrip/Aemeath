@@ -23,14 +23,22 @@ const articleByVersion = new Map(
 const availableNotices = notices.filter((notice) =>
 	articleByVersion.has(notice.version),
 );
-const latestNotice = availableNotices[0] ?? notices[0] ?? {
-	version: "", displayVersion: "暂无公告", kicker: "NOTICE",
-	title: "暂无公告", desc: "请在 src/data 中添加自己的公告。", brief: "",
-	sections: {} as Record<string, string>, labels: {} as Record<string, string>,
-};
+const latestNotice = availableNotices[0] ??
+	notices[0] ?? {
+		version: "",
+		displayVersion: "暂无公告",
+		kicker: "NOTICE",
+		title: "暂无公告",
+		desc: "请在 src/data 中添加自己的公告。",
+		brief: "",
+		sections: {} as Record<string, string>,
+		labels: {} as Record<string, string>,
+	};
 const latestNoticeVersion = latestNotice.version;
 const noticeNavSections = [
-	...new Set(availableNotices.flatMap((notice) => Object.keys(notice.sections))),
+	...new Set(
+		availableNotices.flatMap((notice) => Object.keys(notice.sections)),
+	),
 ];
 const noticeMetaJson = JSON.stringify(
 	Object.fromEntries(notices.map((notice) => [notice.version, notice])),

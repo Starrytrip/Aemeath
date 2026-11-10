@@ -1,8 +1,11 @@
 ---
+import { sakuraConfig } from "@/config";
 import { visitorDefaultsSyncConfig } from "@/config/visitorDefaultsSyncConfig";
+
+const sakuraDefaultEnabled = String(sakuraConfig.enable);
 ---
 
-<script is:inline define:vars={{ visitorDefaultsSyncConfig }}>
+<script is:inline define:vars={{ visitorDefaultsSyncConfig, sakuraDefaultEnabled }}>
 	(() => {
 		try {
 			const storage = window.localStorage;
@@ -25,7 +28,7 @@ import { visitorDefaultsSyncConfig } from "@/config/visitorDefaultsSyncConfig";
 			// Override the old default once, while preserving future manual changes.
 			const sakuraDefaultMigrationKey = "rainzt.sakura-default-enabled.v1";
 			if (storage.getItem(sakuraDefaultMigrationKey) !== "1") {
-				storage.setItem("sakuraEnabled", "true");
+				storage.setItem("sakuraEnabled", sakuraDefaultEnabled);
 				storage.setItem(sakuraDefaultMigrationKey, "1");
 			}
 		} catch {

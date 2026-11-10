@@ -1,7 +1,5 @@
-import { getIconSvg } from "@/constants/icons";
 import { serviceConfig } from "@/config/serviceConfig";
-import { setupCommentSentiments } from "./comment-sentiments";
-import { setupCommentModerationOverlay } from "./comment-moderation-overlay";
+import { getIconSvg } from "@/constants/icons";
 import {
 	curatedLottieQqEmojiIds,
 	featuredLottieEmojis,
@@ -13,6 +11,8 @@ import {
 	DEFAULT_COMMENT_AVATAR,
 	getCommentAvatarUrl,
 } from "@/utils/comment-avatars";
+import { setupCommentModerationOverlay } from "./comment-moderation-overlay";
+import { setupCommentSentiments } from "./comment-sentiments";
 
 (() => {
 	const runtimeWindow = window as typeof window & {
@@ -3314,7 +3314,8 @@ import {
 			figure.dataset.walineFriendReviewFigure = "true";
 			const image = document.createElement("img");
 			image.src = `${import.meta.env.BASE_URL}images/ai-friend-review.png`;
-			image.alt = "小爱友链审核后台：AI 审核已通过，站长审核待定，并已找到本站回链。";
+			image.alt =
+				"小爱友链审核后台：AI 审核已通过，站长审核待定，并已找到本站回链。";
 			image.setAttribute("role", "button");
 			image.setAttribute("tabindex", "0");
 			image.setAttribute("aria-label", "放大查看 AI 友链审核截图");
@@ -3843,10 +3844,12 @@ import {
 	const startFriendApplication = (root: HTMLElement) => {
 		applicationCleanup?.();
 		delete root.dataset.friendsApplicationPending;
-		root.previousElementSibling?.matches("[data-friends-application-error]") && root.previousElementSibling.remove();
+		root.previousElementSibling?.matches("[data-friends-application-error]") &&
+			root.previousElementSibling.remove();
 		const status = document.createElement("p");
 		status.setAttribute("role", "status");
-		status.style.cssText = "padding: .75rem 0; color: var(--content-meta); font-size: .875rem";
+		status.style.cssText =
+			"padding: .75rem 0; color: var(--content-meta); font-size: .875rem";
 		status.textContent = "正在加载评论区和申请模板…";
 		root.before(status);
 		let timeout: number | undefined;
@@ -3873,9 +3876,13 @@ import {
 			}
 			cleanup();
 			if (window.location.hash === "#post-comments") {
-				root.closest<HTMLElement>("#post-comments")?.scrollIntoView({ behavior: "instant", block: "start" });
+				root
+					.closest<HTMLElement>("#post-comments")
+					?.scrollIntoView({ behavior: "instant", block: "start" });
 				if (window.matchMedia("(max-width: 580px)").matches) {
-					document.querySelector<HTMLButtonElement>(".waline-mobile-comment-entry")?.click();
+					document
+						.querySelector<HTMLButtonElement>(".waline-mobile-comment-entry")
+						?.click();
 				}
 			}
 		};
@@ -3889,7 +3896,9 @@ import {
 		window.setTimeout(fillEditor, 0);
 	};
 	document.addEventListener("waline:friend-application", () => {
-		const root = document.querySelector<HTMLElement>("#post-comments [data-waline-root]");
+		const root = document.querySelector<HTMLElement>(
+			"#post-comments [data-waline-root]",
+		);
 		if (root) startFriendApplication(root);
 	});
 	const pendingApplicationRoot = document.querySelector<HTMLElement>(
@@ -3899,6 +3908,7 @@ import {
 
 	scheduleWalineInit();
 	document.addEventListener("astro:page-load", scheduleWalineInit);
+	document.addEventListener("yukina:article-loaded", scheduleWalineInit);
 	document.addEventListener("swup:contentReplaced", scheduleWalineInit);
 	document.addEventListener("swup:page:view", scheduleWalineInit);
 	document.addEventListener("hashchange", scheduleWalineInit);

@@ -2,8 +2,18 @@
 import ImageWrapper from "@/components/common/ImageWrapper.astro";
 import { url } from "@/utils/url-utils";
 
-interface Props { href?: string; title?: string; description?: string; image?: string }
-const { href = "", title = "请添加自己的相关阅读", description = "通过组件属性配置标题、封面和文章地址。", image = "/assets/ai-xiaoai-avatar.png" } = Astro.props;
+interface Props {
+	href?: string;
+	title?: string;
+	description?: string;
+	image?: string;
+}
+const {
+	href = "",
+	title = "请添加自己的相关阅读",
+	description = "通过组件属性配置标题、封面和文章地址。",
+	image = "/assets/ai-xiaoai-avatar.png",
+} = Astro.props;
 ---
 
 <aside class="centennial-related" aria-labelledby="centennial-related-title">

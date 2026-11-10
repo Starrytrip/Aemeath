@@ -1,0 +1,538 @@
+---
+import { Icon } from "astro-icon/components";
+import MainGridLayout from "@/layouts/MainGridLayout.astro";
+
+const title = "聊天室";
+const description = "本地在线聊天室，支持同域名标签页实时同步";
+---
+
+<MainGridLayout title={title} description={description}>
+  <div class="flex w-full rounded-(--radius-large) overflow-hidden relative min-h-32">
+    <div id="chat-root" class="card-base z-10 px-5 py-5 md:px-9 md:py-6 relative w-full">
+      <div class="mb-5 flex flex-wrap items-start justify-between gap-4">
+        <div class="min-w-0">
+          <div class="mb-3 flex items-center gap-3">
+            <div class="h-8 w-8 rounded-lg bg-(--primary) flex items-center justify-center text-white dark:text-black/70">
+              <Icon is:inline name="material-symbols:forum-rounded" class="text-[1.5rem]"></Icon>
+            </div>
+            <div class="text-3xl font-bold text-neutral-900 dark:text-neutral-100">
+              {title}
+            </div>
+          </div>
+          <p class="text-base text-neutral-600 dark:text-neutral-400 leading-relaxed">
+            纯前端聊天室：消息保存在本机浏览器，仅同域名标签页之间实时同步。
+          </p>
+        </div>
+
+        <div class="flex flex-col items-end gap-1">
+          <div class="flex items-center gap-2">
+            <span
+              id="chat-avatar"
+              class="flex h-9 w-9 items-center justify-center rounded-full text-sm font-bold text-white shadow-sm"
+            ></span>
+            <input
+              id="chat-nick"
+              type="text"
+              maxlength="20"
+              autocomplete="nickname"
+              placeholder="昵称"
+              class="w-28 rounded-lg bg-(--btn-regular-bg) px-3 py-2 text-sm text-(--btn-content) outline-none focus:ring-2 focus:ring-(--primary) disabled:opacity-70"
+            />
+            <button
+              id="chat-nick-save"
+              type="button"
+              class="btn-regular rounded-lg px-3 py-2 text-sm font-bold text-(--btn-content) active:scale-95 transition"
+            >
+              保存
+            </button>
+          </div>
+          <span id="chat-nick-hint" class="hidden text-xs text-(--content-meta)"></span>
+        </div>
+      </div>
+
+      <div class="mb-3 flex flex-wrap items-center gap-2 text-sm text-(--content-meta)">
+        <span class="inline-flex items-center gap-1.5 rounded-full bg-(--btn-regular-bg) px-3 py-1">
+          <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+          <span id="chat-online-count">1</span>
+          <span>人在线</span>
+        </span>
+        <span id="chat-online-list" class="truncate"></span>
+      </div>
+
+      <div
+        id="chat-messages"
+        class="flex flex-col gap-3 overflow-y-auto rounded-(--radius-large) border border-(--line-divider) bg-(--btn-regular-bg) px-3 py-4 md:px-4"
+        style="height: clamp(18rem, 52vh, 32rem);"
+        role="log"
+        aria-live="polite"
+        aria-label="聊天消息"
+      ></div>
+
+      <form id="chat-form" class="mt-4" novalidate>
+        <div class="flex items-end gap-2 rounded-xl bg-(--btn-regular-bg) p-2">
+          <textarea
+            id="chat-input"
+            rows="1"
+            maxlength="500"
+            enterkeyhint="send"
+            placeholder="说点什么…"
+            class="max-h-[7.5rem] min-h-10 flex-1 resize-none bg-transparent px-2 py-2 text-sm text-(--btn-content) outline-none placeholder:text-(--content-meta)"
+          ></textarea>
+          <button
+            id="chat-send"
+            type="submit"
+            class="btn-regular flex items-center gap-1.5 rounded-lg px-4 py-2.5 font-bold text-(--btn-content) active:scale-95 transition"
+          >
+            <Icon is:inline name="material-symbols:send-rounded" class="text-[1.1rem]"></Icon>
+            发送
+          </button>
+        </div>
+        <div class="mt-2 flex flex-wrap items-center justify-between gap-2 text-xs text-(--content-meta)">
+          <span id="chat-hint">Enter 发送 · Shift+Enter 换行</span>
+          <button
+            id="chat-clear"
+            type="button"
+            class="btn-plain rounded-md px-2 py-1 text-xs text-(--content-meta) hover:bg-(--btn-regular-bg-hover) active:scale-95 transition"
+          >
+            清空记录
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</MainGridLayout>
+
+<style>
+  #chat-messages {
+    scrollbar-width: thin;
+    scrollbar-color: var(--line-divider) transparent;
+  }
+
+  #chat-messages::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  #chat-messages::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: var(--line-divider);
+  }
+</style>
+
+<script>
+  import { fetchMe, getAccessToken } from "@/utils/api-client";
+
+  type ChatMessage = {
+    id: string;
+    nick: string;
+    text: string;
+    at: number;
+  };
+
+  type PresenceEntry = {
+    nick: string;
+    at: number;
+  };
+
+  type PresenceMap = Record<string, PresenceEntry>;
+
+  const MESSAGE_KEY = "yukina.chat.messages.v1";
+  const NICK_KEY = "yukina.chat.nick.v1";
+  const PRESENCE_KEY = "yukina.chat.presence.v1";
+  const MAX_MESSAGES = 200;
+  // 心跳间隔与过期时间：超过 15 秒没有心跳即视为已离线
+  const PRESENCE_TTL = 15_000;
+  const HEARTBEAT_MS = 5_000;
+  const DEFAULT_HINT = "Enter 发送 · Shift+Enter 换行";
+
+  const tabId = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
+  let teardown: (() => void) | null = null;
+
+  const readJSON = <T,>(key: string, fallback: T): T => {
+    try {
+      const raw = localStorage.getItem(key);
+      if (!raw) return fallback;
+      return JSON.parse(raw) as T;
+    } catch {
+      return fallback;
+    }
+  };
+
+  const writeJSON = (key: string, value: unknown): void => {
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      // 隐私模式下写入失败时仅保留当前页面的内存状态
+    }
+  };
+
+  const prunePresence = (map: PresenceMap, now = Date.now()): PresenceMap => {
+    const next: PresenceMap = {};
+    for (const [key, entry] of Object.entries(map)) {
+      if (entry && typeof entry.at === "number" && now - entry.at <= PRESENCE_TTL) {
+        next[key] = entry;
+      }
+    }
+    return next;
+  };
+
+  const loadMessages = (): ChatMessage[] => {
+    const raw = readJSON<unknown>(MESSAGE_KEY, []);
+    if (!Array.isArray(raw)) return [];
+    return raw
+      .filter((item): item is ChatMessage => {
+        if (!item || typeof item !== "object") return false;
+        const record = item as Record<string, unknown>;
+        return (
+          typeof record.id === "string" &&
+          typeof record.nick === "string" &&
+          typeof record.text === "string" &&
+          typeof record.at === "number"
+        );
+      })
+      .sort((a, b) => a.at - b.at)
+      .slice(-MAX_MESSAGES);
+  };
+
+  const resolveNick = (): string => {
+    try {
+      const saved = localStorage.getItem(NICK_KEY);
+      if (saved) return saved;
+    } catch {
+      // 忽略读取失败，使用临时昵称
+    }
+    const generated = `访客${Math.floor(1000 + Math.random() * 9000)}`;
+    try {
+      localStorage.setItem(NICK_KEY, generated);
+    } catch {
+      // 忽略写入失败
+    }
+    return generated;
+  };
+
+  const makeId = (): string =>
+    `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+
+  const timeFormatter = new Intl.DateTimeFormat("zh-CN", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  const dayFormatter = new Intl.DateTimeFormat("zh-CN", {
+    month: "long",
+    day: "numeric",
+  });
+
+  const formatDay = (at: number): string => {
+    if (new Date(at).toDateString() === new Date().toDateString()) return "今天";
+    return dayFormatter.format(at);
+  };
+
+  const dateKey = (at: number): string => new Date(at).toDateString();
+
+  const avatarColor = (nick: string): string => {
+    let hash = 0;
+    for (let index = 0; index < nick.length; index += 1) {
+      hash = (hash * 31 + nick.charCodeAt(index)) % 360;
+    }
+    return `hsl(${hash} 62% 52%)`;
+  };
+
+  const initialOf = (nick: string): string =>
+    (nick.trim().charAt(0) || "访").toUpperCase();
+
+  const buildDayDivider = (at: number): HTMLElement => {
+    const wrap = document.createElement("div");
+    wrap.className = "my-1 flex items-center justify-center";
+    const label = document.createElement("span");
+    label.className =
+      "rounded-full border border-(--line-divider) bg-(--card-bg) px-3 py-0.5 text-xs text-(--content-meta)";
+    label.textContent = formatDay(at);
+    wrap.append(label);
+    return wrap;
+  };
+
+  const buildMessage = (
+    message: ChatMessage,
+    currentNick: string,
+  ): HTMLElement => {
+    const own = message.nick === currentNick;
+
+    const row = document.createElement("div");
+    row.className = `flex items-end gap-2 ${own ? "justify-end" : ""}`;
+
+    const avatar = document.createElement("span");
+    avatar.className =
+      "flex h-8 w-8 flex-none items-center justify-center rounded-full text-sm font-bold text-white shadow-sm";
+    avatar.style.backgroundColor = avatarColor(message.nick);
+    avatar.textContent = initialOf(message.nick);
+
+    const body = document.createElement("div");
+    body.className = "min-w-0 max-w-[78%]";
+
+    const meta = document.createElement("div");
+    meta.className = `mb-1 flex items-center gap-1.5 text-xs text-(--content-meta) ${own ? "justify-end" : ""}`;
+    const nameEl = document.createElement("span");
+    nameEl.className = "font-semibold";
+    nameEl.textContent = message.nick;
+    const timeEl = document.createElement("span");
+    timeEl.textContent = timeFormatter.format(message.at);
+    meta.append(nameEl, timeEl);
+
+    const bubble = document.createElement("div");
+    bubble.className = own
+      ? "whitespace-pre-wrap break-words rounded-2xl rounded-br-md bg-(--primary) px-3.5 py-2 text-sm leading-relaxed text-white dark:text-black/70"
+      : "whitespace-pre-wrap break-words rounded-2xl rounded-bl-md bg-(--btn-regular-bg) px-3.5 py-2 text-sm leading-relaxed text-(--btn-content)";
+    bubble.textContent = message.text;
+
+    body.append(meta, bubble);
+    if (own) row.append(body, avatar);
+    else row.append(avatar, body);
+    return row;
+  };
+
+  const buildEmptyState = (): HTMLElement => {
+    const box = document.createElement("div");
+    box.className = "m-auto py-10 text-center text-(--content-meta)";
+    // 静态装饰性标记，不包含任何用户输入
+    box.innerHTML = `<svg class="mx-auto mb-3 h-10 w-10 text-(--primary)" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg><p class="text-sm">还没有消息，来打个招呼吧</p>`;
+    return box;
+  };
+
+  const initChat = () => {
+    teardown?.();
+    teardown = null;
+
+    const root = document.getElementById("chat-root");
+    if (!root) return;
+
+    const messagesEl = document.getElementById("chat-messages");
+    const form = document.getElementById("chat-form") as HTMLFormElement | null;
+    const input = document.getElementById("chat-input") as HTMLTextAreaElement | null;
+    const countEl = document.getElementById("chat-online-count");
+    const listEl = document.getElementById("chat-online-list");
+    const nickInput = document.getElementById("chat-nick") as HTMLInputElement | null;
+    const nickSaveBtn = document.getElementById("chat-nick-save") as HTMLButtonElement | null;
+    const nickAvatar = document.getElementById("chat-avatar");
+    const nickHint = document.getElementById("chat-nick-hint");
+    const clearBtn = document.getElementById("chat-clear") as HTMLButtonElement | null;
+    const hintEl = document.getElementById("chat-hint");
+
+    if (!messagesEl || !form || !input) return;
+
+    let disposed = false;
+    let messages = loadMessages();
+    let nick = resolveNick();
+    let hintTimer: number | null = null;
+
+    const flashHint = (text: string): void => {
+      if (!hintEl) return;
+      hintEl.textContent = text;
+      if (hintTimer !== null) window.clearTimeout(hintTimer);
+      hintTimer = window.setTimeout(() => {
+        if (hintEl) hintEl.textContent = DEFAULT_HINT;
+        hintTimer = null;
+      }, 2200);
+    };
+
+    const renderNickAvatar = (): void => {
+      if (!nickAvatar) return;
+      nickAvatar.style.backgroundColor = avatarColor(nick);
+      nickAvatar.textContent = initialOf(nick);
+    };
+
+    const saveMessages = (): void => {
+      messages = messages.slice(-MAX_MESSAGES);
+      writeJSON(MESSAGE_KEY, messages);
+    };
+
+    const isNearBottom = (): boolean =>
+      messagesEl.scrollHeight - messagesEl.scrollTop - messagesEl.clientHeight < 80;
+
+    const renderMessages = (force = false): void => {
+      const stick = force || isNearBottom();
+      messagesEl.replaceChildren();
+      if (messages.length === 0) {
+        messagesEl.append(buildEmptyState());
+        return;
+      }
+      let lastDay = "";
+      for (const message of messages) {
+        const day = dateKey(message.at);
+        if (day !== lastDay) {
+          messagesEl.append(buildDayDivider(message.at));
+          lastDay = day;
+        }
+        messagesEl.append(buildMessage(message, nick));
+      }
+      if (stick) messagesEl.scrollTop = messagesEl.scrollHeight;
+    };
+
+    const renderPresence = (): void => {
+      const map = prunePresence(readJSON<PresenceMap>(PRESENCE_KEY, {}));
+      const nicks = Array.from(
+        new Set(
+          Object.values(map)
+            .map((entry) => entry.nick)
+            .filter((name) => name.length > 0),
+        ),
+      );
+      if (countEl) countEl.textContent = String(Math.max(nicks.length, 1));
+      if (listEl) {
+        listEl.textContent =
+          nicks.length > 0
+            ? `在线：${nicks.slice(0, 6).join("、")}${nicks.length > 6 ? " 等" : ""}`
+            : "";
+      }
+    };
+
+    const beat = (): void => {
+      if (disposed) return;
+      const map = prunePresence(readJSON<PresenceMap>(PRESENCE_KEY, {}));
+      map[tabId] = { nick, at: Date.now() };
+      writeJSON(PRESENCE_KEY, map);
+      renderPresence();
+    };
+
+    const applyNick = (value: string): void => {
+      const next = value.trim().slice(0, 20);
+      if (!next) {
+        flashHint("请先输入一个昵称");
+        return;
+      }
+      nick = next;
+      try {
+        localStorage.setItem(NICK_KEY, next);
+      } catch {
+        // 忽略写入失败
+      }
+      renderNickAvatar();
+      beat();
+      renderMessages();
+      flashHint("昵称已更新");
+    };
+
+    const autoResize = (): void => {
+      input.style.height = "auto";
+      input.style.height = `${Math.min(input.scrollHeight, 120)}px`;
+    };
+
+    const sendMessage = (): void => {
+      const text = input.value.trim();
+      if (!text) {
+        flashHint("先输入内容再发送吧");
+        input.focus();
+        return;
+      }
+      messages.push({ id: makeId(), nick, text, at: Date.now() });
+      saveMessages();
+      input.value = "";
+      autoResize();
+      renderMessages(true);
+      input.focus();
+    };
+
+    const onStorage = (event: StorageEvent): void => {
+      if (event.key === MESSAGE_KEY) {
+        messages = loadMessages();
+        renderMessages();
+      } else if (event.key === PRESENCE_KEY) {
+        renderPresence();
+      }
+    };
+
+    const onVisibility = (): void => {
+      if (document.visibilityState === "visible") beat();
+    };
+
+    const onPageHide = (): void => {
+      const map = prunePresence(readJSON<PresenceMap>(PRESENCE_KEY, {}));
+      delete map[tabId];
+      writeJSON(PRESENCE_KEY, map);
+    };
+
+    form.addEventListener("submit", (event) => {
+      event.preventDefault();
+      sendMessage();
+    });
+
+    input.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" && !event.shiftKey && !event.isComposing) {
+        event.preventDefault();
+        form.requestSubmit();
+      }
+    });
+    input.addEventListener("input", autoResize);
+
+    nickSaveBtn?.addEventListener("click", () => {
+      if (nickInput) applyNick(nickInput.value);
+    });
+
+    nickInput?.addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        applyNick(nickInput.value);
+      }
+    });
+
+    clearBtn?.addEventListener("click", () => {
+      if (messages.length === 0) {
+        flashHint("还没有消息可以清空");
+        return;
+      }
+      if (!window.confirm("清空本机聊天记录？该操作仅影响当前浏览器。")) return;
+      messages = [];
+      saveMessages();
+      renderMessages(true);
+      flashHint("已清空聊天记录");
+    });
+
+    const timer = window.setInterval(beat, HEARTBEAT_MS);
+    window.addEventListener("storage", onStorage);
+    document.addEventListener("visibilitychange", onVisibility);
+    window.addEventListener("pagehide", onPageHide);
+
+    renderNickAvatar();
+    renderMessages(true);
+    beat();
+
+    // 已登录时优先使用账号名作为昵称
+    const syncLoggedInUser = async (): Promise<void> => {
+      if (!getAccessToken()) return;
+      try {
+        const user = await fetchMe();
+        if (disposed) return;
+        nick = user.username;
+        if (nickInput) {
+          nickInput.value = nick;
+          nickInput.disabled = true;
+        }
+        nickSaveBtn?.classList.add("hidden");
+        if (nickHint) {
+          nickHint.textContent = `已使用登录账号 ${user.username}`;
+          nickHint.classList.remove("hidden");
+        }
+        renderNickAvatar();
+        beat();
+        renderMessages();
+      } catch {
+        // 未登录或会话已过期时继续使用本地昵称
+      }
+    };
+
+    void syncLoggedInUser();
+
+    teardown = () => {
+      disposed = true;
+      window.clearInterval(timer);
+      if (hintTimer !== null) window.clearTimeout(hintTimer);
+      window.removeEventListener("storage", onStorage);
+      document.removeEventListener("visibilitychange", onVisibility);
+      window.removeEventListener("pagehide", onPageHide);
+      onPageHide();
+    };
+  };
+
+  initChat();
+  document.addEventListener("astro:page-load", initChat);
+</script>

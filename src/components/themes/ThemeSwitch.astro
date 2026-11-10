@@ -9,10 +9,15 @@ interface Props {
 	inline?: boolean;
 	navigation?: boolean;
 }
-const { id, showFonts = false, inline = false, navigation = false } = Astro.props;
+const {
+	id,
+	showFonts = false,
+	inline = false,
+	navigation = false,
+} = Astro.props;
 const label = inline && showFonts ? "主题与字体" : "主题";
 const choices = [
-	{ value: "aemeath", name: "Aemeath", detail: "壁纸 · 卡片 · 侧栏" },
+	{ value: "yukina", name: "Yukina", detail: "壁纸 · 卡片 · 侧栏" },
 	{ value: "pure", name: "Pure", detail: "简洁导航 · 专注阅读" },
 ];
 ---
@@ -46,7 +51,7 @@ const choices = [
 
 <script>
 	import { siteThemeConfig } from "@/config/siteThemeConfig";
-	import type { SiteTheme } from "@/types/siteThemeConfig";
+	import { chooseSiteTheme } from "@/utils/site-theme";
 
 	function syncThemeChoices() {
 		const theme = document.documentElement.dataset.siteTheme ?? siteThemeConfig.defaultTheme;
@@ -55,26 +60,12 @@ const choices = [
 		});
 	}
 
-	function chooseTheme(theme: SiteTheme) {
-		if (document.documentElement.dataset.siteTheme === theme) return;
-		const destination = new URL(window.location.href);
-		try {
-			localStorage.setItem("rainzt.site-theme.v1", theme);
-			// A URL override must not defeat the visitor's new selection.
-			destination.searchParams.delete("siteTheme");
-		} catch {
-			destination.searchParams.set("siteTheme", theme);
-		}
-		// A document navigation releases the outgoing layout's islands and effects.
-		window.location.assign(destination.href);
-	}
-
 	document.addEventListener("click", (event) => {
 		const target = event.target;
 		if (!(target instanceof Element)) return;
 		const button = target.closest<HTMLButtonElement>("[data-site-theme-choice]");
 		const choice = button?.dataset.siteThemeChoice;
-		if (choice === "aemeath" || choice === "pure") chooseTheme(choice);
+		if (choice === "yukina" || choice === "pure") chooseSiteTheme(choice);
 		document.querySelectorAll<HTMLDetailsElement>(".site-theme-switch[open]").forEach((panel) => {
 			if (!panel.contains(target) || button) panel.open = false;
 		});
@@ -93,7 +84,7 @@ const choices = [
 		if (event.persisted && siteThemeConfig.enabled && !new URLSearchParams(location.search).has("siteTheme")) {
 			try {
 				const saved = localStorage.getItem("rainzt.site-theme.v1");
-				if ((saved === "pure" || saved === "aemeath") && saved !== document.documentElement.dataset.siteTheme) {
+				if ((saved === "pure" || saved === "yukina") && saved !== document.documentElement.dataset.siteTheme) {
 					location.reload();
 					return;
 				}

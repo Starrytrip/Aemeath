@@ -1,4 +1,5 @@
 import { setMaxListeners } from "node:events";
+import { request as httpRequest } from "node:http";
 import { fileURLToPath } from "node:url";
 import { unified } from "@astrojs/markdown-remark";
 import sitemap from "@astrojs/sitemap";
@@ -54,6 +55,51 @@ const adapter = process.env.CF_WORKERS
 			prerenderEnvironment: "node",
 		})
 	: undefined;
+
+/**
+ * 开发环境把 /api/v1 转发到本地 Rust 后端（backend/，默认 127.0.0.1:8787）。
+ *
+ * 必须放在 Astro 开发中间件之前，否则未匹配到页面的请求会先被 Astro 的 404 接管。
+ * `/api` 下的静态 JSON 端点不在此前缀内，保持原样。
+ */
+function apiDevProxy() {
+	const handle = (req, res, next) => {
+		const publicFeeds = {"/rss.xml":"/api/v1/feed.xml","/sitemap.xml":"/api/v1/sitemap.xml","/sitemap-index.xml":"/api/v1/sitemap.xml"};
+        const mapped = publicFeeds[req.url?.split("?")[0]];
+        if (!mapped && !req.url?.startsWith("/api/v1")) return next();
+		const proxyReq = httpRequest(
+			{
+				host: "127.0.0.1",
+				port: 8787,
+				path: mapped || req.url,
+				method: req.method,
+				headers: { ...req.headers, host: "127.0.0.1:8787" },
+			},
+			(proxyRes) => {
+				res.writeHead(proxyRes.statusCode || 502, proxyRes.headers);
+				proxyRes.pipe(res);
+			},
+		);
+		proxyReq.on("error", () => {
+			if (!res.headersSent) {
+				res.writeHead(502, { "Content-Type": "text/plain; charset=utf-8" });
+			}
+			res.end("后端服务未启动（127.0.0.1:8787），请先在 backend/ 目录执行 cargo run");
+		});
+		req.pipe(proxyReq);
+	};
+
+	return {
+		name: "yukina-api-dev-proxy",
+		apply: "serve",
+		configureServer(server) {
+			// 在全部 configureServer 钩子执行完后插到最前面
+			return () => {
+				server.middlewares.stack.unshift({ route: "", handle });
+			};
+		},
+	};
+}
 
 // https://astro.build/config
 export default defineConfig({
@@ -220,34 +266,7 @@ export default defineConfig({
 			},
 		}),
 		svelte(),
-		sitemap({
-			filter: (page) => {
-				// 根据页面开关配置过滤sitemap
-				const url = new URL(page);
-				const pathname = url.pathname;
 
-				if (pathname === "/friends/" && !siteConfig.pages.friends) {
-					return false;
-				}
-				if (pathname === "/sponsor/" && !siteConfig.pages.sponsor) {
-					return false;
-				}
-				if (pathname === "/guestbook/" && !siteConfig.pages.guestbook) {
-					return false;
-				}
-				if (pathname === "/bangumi/" && !siteConfig.pages.bangumi) {
-					return false;
-				}
-				if (pathname === "/gallery/" && !siteConfig.pages.gallery) {
-					return false;
-				}
-				if (pathname === "/anime/" && !siteConfig.pages.anime) {
-					return false;
-				}
-
-				return true;
-			},
-		}),
 		mdx(),
 	],
 	markdown: {
@@ -312,7 +331,7 @@ export default defineConfig({
 		}),
 	},
 	vite: {
-		plugins: [tailwindcss()],
+		plugins: [tailwindcss(), apiDevProxy()],
 		server: {
 			watch: {
 				ignored: ["**/package/**"],

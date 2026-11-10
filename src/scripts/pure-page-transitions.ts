@@ -137,7 +137,7 @@ import { navigate } from "astro:transitions/client";
 		if (content && mount) {
 			// Mount before the swap/snapshot, not in a script after first paint.
 			mount.append(content);
-			next.getElementById("aemeath-shell")?.setAttribute("inert", "");
+			next.getElementById("yukina-shell")?.setAttribute("inert", "");
 		}
 		const nextRoot = next.documentElement;
 		for (const attribute of Array.from(root.attributes)) {

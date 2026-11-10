@@ -1,7 +1,7 @@
 ---
-import { Icon } from "astro-icon/components";
 import { getImage } from "astro:assets";
 import type { ImageMetadata } from "astro";
+import { Icon } from "astro-icon/components";
 import ImageWrapper from "@/components/common/ImageWrapper.astro";
 import { profileConfig, siteConfig } from "@/config";
 import { url } from "@/utils/url-utils";
@@ -18,20 +18,17 @@ const cardOrnaments = [
 	{
 		key: "dove",
 		src: url("/images/home-stickers/golden-dove.png"),
-		initialStyle:
-			"left: 14.3103%; top: -62.2141%; right: auto; bottom: auto;",
+		initialStyle: "left: 14.3103%; top: -62.2141%; right: auto; bottom: auto;",
 	},
 	{
 		key: "cloud",
 		src: url("/images/home-stickers/golden-cloud.png"),
-		initialStyle:
-			"left: 58.2759%; top: 5.8809%; right: auto; bottom: auto;",
+		initialStyle: "left: 58.2759%; top: 5.8809%; right: auto; bottom: auto;",
 	},
 	{
 		key: "cloud-stream",
 		src: url("/images/home-stickers/golden-cloud-stream.png"),
-		initialStyle:
-			"left: -10.8621%; top: 65.6188%; right: auto; bottom: auto;",
+		initialStyle: "left: -10.8621%; top: 65.6188%; right: auto; bottom: auto;",
 	},
 ];
 
@@ -129,26 +126,30 @@ const stickerModules = import.meta.glob<ImageMetadata>(
 	],
 	{ import: "default" },
 );
-const optimizedStickers = await Promise.all(stickerImages.map(async (sticker) => {
-	const sourcePath = `../../../public${sticker.src.replace(import.meta.env.BASE_URL, "/")}`;
-	const loadSource = stickerModules[sourcePath];
-	if (!loadSource) return { ...sticker, width: undefined, height: undefined };
-	const source = await loadSource();
-	const image = await getImage({
-		src: source,
-		width: Math.min(360, source.width),
-		format: "webp",
-		quality: 85,
-	});
-	return {
-		...sticker,
-		src: image.src,
-		width: image.attributes.width,
-		height: image.attributes.height,
-	};
-}));
+const optimizedStickers = await Promise.all(
+	stickerImages.map(async (sticker) => {
+		const sourcePath = `../../../public${sticker.src.replace(import.meta.env.BASE_URL, "/")}`;
+		const loadSource = stickerModules[sourcePath];
+		if (!loadSource) return { ...sticker, width: undefined, height: undefined };
+		const source = await loadSource();
+		const image = await getImage({
+			src: source,
+			width: Math.min(360, source.width),
+			format: "webp",
+			quality: 85,
+		});
+		return {
+			...sticker,
+			src: image.src,
+			width: image.attributes.width,
+			height: image.attributes.height,
+		};
+	}),
+);
 
-const quoteSticker = optimizedStickers.find((sticker) => sticker.key === "quote");
+const quoteSticker = optimizedStickers.find(
+	(sticker) => sticker.key === "quote",
+);
 const floatingStickerImages = optimizedStickers.filter(
 	(sticker) => sticker.key !== "quote",
 );
@@ -317,7 +318,7 @@ const mobileStickerKeys = [
 </div>
 
 <script>
-	if (document.documentElement.dataset.siteTheme === "aemeath") {
+	if (document.documentElement.dataset.siteTheme === "yukina") {
 		void import("@/scripts/home-wallpaper-decor");
 	}
 </script>

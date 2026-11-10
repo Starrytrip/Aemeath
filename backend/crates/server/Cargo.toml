@@ -1,0 +1,40 @@
+[package]
+name = "yukina-api"
+version.workspace = true
+edition.workspace = true
+
+[lib]
+name = "yukina_server"
+
+[dependencies]
+tempfile.workspace = true
+tower-http.workspace = true
+yukina-shared.workspace = true
+axum.workspace = true
+tokio.workspace = true
+dotenvy.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+yukina-store.workspace = true
+yukina-embedding.workspace = true
+yukina-runtime.workspace = true
+yukina-email-notifier.workspace = true
+yukina-media-service.workspace = true
+axum-extra.workspace = true
+image.workspace = true
+sea-orm.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+chrono.workspace = true
+rand.workspace = true
+sha2.workspace = true
+hex.workspace = true
+reqwest.workspace = true
+pulldown-cmark.workspace = true
+quick-xml.workspace = true
+tokio-util.workspace = true
+ip2region.workspace = true
+
+[dev-dependencies]
+tower.workspace = true
+bcrypt.workspace = true

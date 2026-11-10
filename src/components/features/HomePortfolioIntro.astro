@@ -42,6 +42,7 @@ const initialStyle = initialHome
 	id="home-portfolio-intro"
 	class:list={["home-portfolio-intro", initialHome && "home-portfolio-intro--boot"]}
 	style={initialStyle}
+	data-default-enabled={String(homePortfolioIntroSettings.defaultEnabled)}
 	data-enabled-storage-key={homePortfolioIntroSettings.enabledStorageKey}
 	data-character-storage-key={homePortfolioIntroSettings.characterStorageKey}
 	data-top-banner-storage-key={homePortfolioIntroSettings.topBannerStorageKey}
@@ -101,7 +102,7 @@ const initialStyle = initialHome
 </section>
 
 <script>
-	if (document.documentElement.dataset.siteTheme === "aemeath") {
+	if (document.documentElement.dataset.siteTheme === "yukina") {
 		void import("@/scripts/home-portfolio-intro");
 	}
 </script>

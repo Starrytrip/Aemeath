@@ -1,0 +1,1661 @@
+---
+import { Icon } from "astro-icon/components";
+import { siteConfig } from "@/config";
+import { alternateHomepageWallpaper } from "@/config/backgroundWallpaper";
+
+interface Props {
+	/** 毛玻璃面板底图，可替换为任意图片地址 */
+	image?: string;
+}
+
+const { image } = Astro.props;
+const siteTitle = siteConfig.navbar.title || siteConfig.title;
+const visualImage = image ?? alternateHomepageWallpaper;
+---
+
+<div id="login-modal" class="login-modal" hidden>
+  <div class="login-modal-backdrop" data-login-close></div>
+  <div
+    class="login-modal-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-label="账号登录"
+  >
+    <button
+      type="button"
+      class="login-modal-close"
+      data-login-close
+      aria-label="关闭登录窗口"
+    >
+      <Icon is:inline name="material-symbols:close-rounded" />
+    </button>
+
+    <div class="login-modal-body" data-login-site={siteTitle}>
+      <section class="login-pane login-pane-visual" data-login-visual>
+        <img
+          class="login-visual-image"
+          src={visualImage}
+          alt=""
+          loading="lazy"
+          decoding="async"
+        />
+        <div class="login-visual-glass">
+          <div class="login-visual-copy">
+            <h2 data-login-visual-title>Hello Friend!</h2>
+            <p data-login-visual-text>
+              点击下面按钮注册账号，一起成为本博客的伙伴吧！
+            </p>
+          </div>
+          <button type="button" class="login-visual-cta" data-login-cta>
+            <span data-login-cta-label>注册</span>
+          </button>
+        </div>
+      </section>
+
+      <section class="login-pane login-pane-panel">
+        <div data-login-view="form">
+          <header class="login-panel-header">
+            <h2>登录账号</h2>
+            <p>支持用户名或邮箱登录，登录状态仅保存在当前浏览器。</p>
+          </header>
+
+          <form id="login-modal-form" class="login-form" novalidate>
+            <label class="login-field">
+              <span class="sr-only">用户名或邮箱</span>
+              <span class="login-field-control">
+                <Icon is:inline name="material-symbols:person-rounded" />
+                <input
+                  id="login-modal-username"
+                  name="account"
+                  type="text"
+                  autocomplete="username"
+                  maxlength="254"
+                  placeholder="请输入用户名或邮箱"
+                  required
+                />
+              </span>
+            </label>
+
+            <label class="login-field">
+              <span class="sr-only">密码</span>
+              <span class="login-field-control">
+                <Icon is:inline name="material-symbols:key-rounded" />
+                <input
+                  id="login-modal-password"
+                  name="password"
+                  type="password"
+                  autocomplete="current-password"
+                  maxlength="128"
+                  placeholder="请输入密码"
+                  required
+                />
+                <button
+                  type="button"
+                  class="login-password-toggle"
+                  data-login-password-toggle
+                  aria-label="显示密码"
+                >
+                  <span data-login-eye-show>
+                    <Icon is:inline name="material-symbols:visibility" />
+                  </span>
+                  <span class="hidden" data-login-eye-hide>
+                    <Icon is:inline name="material-symbols:visibility-off" />
+                  </span>
+                </button>
+              </span>
+            </label>
+
+            <div class="login-captcha-row" data-login-captcha hidden>
+              <span class="login-field-control login-captcha-input">
+                <input
+                  id="login-modal-captcha"
+                  name="captcha"
+                  type="text"
+                  inputmode="text"
+                  autocomplete="off"
+                  maxlength="4"
+                  placeholder="请输入验证码"
+                  aria-label="验证码"
+                />
+              </span>
+              <button
+                type="button"
+                class="login-captcha-display"
+                data-login-captcha-refresh
+                aria-label="刷新验证码"
+                title="看不清？点击换一张"
+              >
+                <span class="login-captcha-code" data-login-captcha-code></span>
+              </button>
+            </div>
+
+            <div class="login-forgot">
+              <button type="button" class="login-forgot-link" data-login-forgot>
+                忘记密码？
+              </button>
+            </div>
+
+            <p id="login-modal-error" class="login-error" aria-live="polite"></p>
+            <p id="login-modal-notice" class="login-notice" aria-live="polite"></p>
+
+            <button id="login-modal-submit" type="submit" class="login-submit">
+              <span data-login-submit-label>登录</span>
+            </button>
+          </form>
+        </div>
+
+        <div data-login-view="register" hidden>
+          <header class="login-panel-header">
+            <h2>注册账号</h2>
+            <p>填写用户名、邮箱与密码，邮箱验证码验证通过后即可创建账号。</p>
+          </header>
+
+          <form id="login-modal-register-form" class="login-form" novalidate>
+            <label class="login-field">
+              <span class="sr-only">用户名</span>
+              <span class="login-field-control">
+                <Icon is:inline name="material-symbols:person-rounded" />
+                <input
+                  id="login-modal-register-username"
+                  name="register-username"
+                  type="text"
+                  autocomplete="username"
+                  maxlength="30"
+                  placeholder="想用什么昵称"
+                  required
+                />
+              </span>
+            </label>
+
+            <label class="login-field">
+              <span class="sr-only">邮箱</span>
+              <span class="login-field-control">
+                <Icon is:inline name="material-symbols:mail-rounded" />
+                <input
+                  id="login-modal-register-email"
+                  name="register-email"
+                  type="email"
+                  autocomplete="email"
+                  maxlength="254"
+                  placeholder="用于接收验证码的邮箱"
+                  required
+                />
+              </span>
+            </label>
+
+            <div class="login-captcha-row">
+              <span class="login-field-control login-captcha-input">
+                <input
+                  id="login-modal-register-code"
+                  name="register-code"
+                  type="text"
+                  inputmode="numeric"
+                  autocomplete="one-time-code"
+                  maxlength="6"
+                  placeholder="6 位邮箱验证码"
+                  aria-label="邮箱验证码"
+                  required
+                />
+              </span>
+              <button
+                type="button"
+                class="login-code-request"
+                data-register-code-request
+              >
+                获取验证码
+              </button>
+            </div>
+
+            <label class="login-field">
+              <span class="sr-only">密码</span>
+              <span class="login-field-control">
+                <Icon is:inline name="material-symbols:key-rounded" />
+                <input
+                  id="login-modal-register-password"
+                  name="register-password"
+                  type="password"
+                  autocomplete="new-password"
+                  maxlength="128"
+                  placeholder="设置登录密码（8-128 位）"
+                  required
+                />
+                <button
+                  type="button"
+                  class="login-password-toggle"
+                  data-login-password-toggle
+                  aria-label="显示密码"
+                >
+                  <span data-login-eye-show>
+                    <Icon is:inline name="material-symbols:visibility" />
+                  </span>
+                  <span class="hidden" data-login-eye-hide>
+                    <Icon is:inline name="material-symbols:visibility-off" />
+                  </span>
+                </button>
+              </span>
+            </label>
+
+            <label class="login-field">
+              <span class="sr-only">确认密码</span>
+              <span class="login-field-control">
+                <Icon is:inline name="material-symbols:lock" />
+                <input
+                  id="login-modal-register-confirm"
+                  name="register-confirm"
+                  type="password"
+                  autocomplete="new-password"
+                  maxlength="128"
+                  placeholder="再输入一次密码"
+                  required
+                />
+              </span>
+            </label>
+
+            <p
+              id="login-modal-register-error"
+              class="login-error"
+              aria-live="polite"
+            ></p>
+            <p
+              id="login-modal-register-notice"
+              class="login-notice"
+              aria-live="polite"
+            ></p>
+
+            <button
+              id="login-modal-register-submit"
+              type="submit"
+              class="login-submit"
+            >
+              <span data-login-submit-label>创建账号</span>
+            </button>
+          </form>
+        </div>
+
+        <div data-login-view="forgot" hidden>
+          <header class="login-panel-header">
+            <h2>找回密码</h2>
+            <p>输入注册邮箱获取验证码，验证通过后即可设置新密码。</p>
+          </header>
+
+          <form id="login-modal-forgot-form" class="login-form" novalidate>
+            <label class="login-field">
+              <span class="sr-only">邮箱</span>
+              <span class="login-field-control">
+                <Icon is:inline name="material-symbols:mail-rounded" />
+                <input
+                  id="login-modal-forgot-email"
+                  name="forgot-email"
+                  type="email"
+                  autocomplete="email"
+                  maxlength="254"
+                  placeholder="请输入注册时使用的邮箱"
+                  required
+                />
+              </span>
+            </label>
+
+            <div class="login-captcha-row">
+              <span class="login-field-control login-captcha-input">
+                <input
+                  id="login-modal-forgot-code"
+                  name="forgot-code"
+                  type="text"
+                  inputmode="numeric"
+                  autocomplete="one-time-code"
+                  maxlength="6"
+                  placeholder="6 位验证码"
+                  aria-label="重置验证码"
+                  required
+                />
+              </span>
+              <button
+                type="button"
+                class="login-code-request"
+                data-login-code-request
+              >
+                获取验证码
+              </button>
+            </div>
+
+            <label class="login-field">
+              <span class="sr-only">新密码</span>
+              <span class="login-field-control">
+                <Icon is:inline name="material-symbols:key-rounded" />
+                <input
+                  id="login-modal-forgot-password"
+                  name="forgot-password"
+                  type="password"
+                  autocomplete="new-password"
+                  maxlength="128"
+                  placeholder="设置新密码（8-128 位）"
+                  required
+                />
+              </span>
+            </label>
+
+            <p
+              id="login-modal-forgot-error"
+              class="login-error"
+              aria-live="polite"
+            ></p>
+            <p class="login-forgot-hint" data-login-forgot-tip hidden></p>
+
+            <button
+              id="login-modal-forgot-submit"
+              type="submit"
+              class="login-submit"
+            >
+              <span data-login-submit-label>重置密码</span>
+            </button>
+          </form>
+        </div>
+
+        <div data-login-view="profile" hidden>
+          <header class="login-panel-header">
+            <h2>个人信息</h2>
+            <p>你已登录，可以在下方退出当前账号。</p>
+          </header>
+
+          <div class="login-profile">
+            <span class="login-profile-avatar" data-login-avatar></span>
+            <div class="login-profile-info">
+              <p class="login-profile-name" data-login-username></p>
+              <p class="login-profile-role" data-login-role></p>
+            </div>
+          </div>
+
+          <div class="login-profile-actions">
+            <button type="button" class="login-submit" data-login-dismiss>
+              继续浏览
+            </button>
+            <button type="button" class="login-logout" data-login-logout>
+              <Icon is:inline name="material-symbols:logout-rounded" />
+              退出登录
+            </button>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<style>
+  .login-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    display: grid;
+    place-items: center;
+    padding: 1.25rem;
+  }
+
+  .login-modal[hidden] {
+    display: none;
+  }
+
+  .login-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgb(15 23 42 / 0.4);
+    -webkit-backdrop-filter: blur(10px) saturate(1.05);
+    backdrop-filter: blur(10px) saturate(1.05);
+    opacity: 1;
+  }
+
+  .login-modal.is-open .login-modal-backdrop {
+    animation: login-backdrop-in 0.25s ease both;
+  }
+
+  .login-modal-dialog {
+    position: relative;
+    width: min(56rem, 100%);
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--primary) 16%, var(--line-divider));
+    border-radius: 1.1rem;
+    background: var(--card-bg);
+    box-shadow:
+      0 2rem 4rem rgb(15 23 42 / 0.3),
+      inset 0 1px 0 rgb(255 255 255 / 0.5);
+    opacity: 1;
+  }
+
+  .login-modal.is-open .login-modal-dialog {
+    animation: login-dialog-in 0.34s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+
+  @keyframes login-backdrop-in {
+    from {
+      opacity: 0;
+    }
+
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes login-dialog-in {
+    from {
+      opacity: 0;
+      transform: translateY(1.25rem) scale(0.97);
+    }
+
+    to {
+      opacity: 1;
+      transform: none;
+    }
+  }
+
+  .login-modal-body {
+    position: relative;
+    display: flex;
+    overflow: hidden;
+  }
+
+  .login-pane {
+    width: 50%;
+    flex: 0 0 50%;
+    min-width: 0;
+    transition: transform 0.55s cubic-bezier(0.22, 0.9, 0.26, 1);
+    will-change: transform;
+  }
+
+  .login-modal.is-swapped .login-pane-visual {
+    transform: translateX(100%);
+  }
+
+  .login-modal.is-swapped .login-pane-panel {
+    transform: translateX(-100%);
+  }
+
+  .login-pane-visual {
+    position: relative;
+    overflow: hidden;
+    min-height: 31rem;
+  }
+
+  .login-visual-image {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transform: scale(1.02);
+    transition: transform 0.8s cubic-bezier(0.22, 0.9, 0.26, 1);
+  }
+
+  .login-pane-visual:hover .login-visual-image {
+    transform: scale(1.05);
+  }
+
+  /* 毛玻璃：模糊度较低，悬浮时彻底消散 */
+  .login-visual-glass {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 1.1rem;
+    padding: 2rem 1.6rem;
+    color: #12324e;
+    text-align: center;
+    background: linear-gradient(
+      160deg,
+      rgb(255 255 255 / 0.38) 0%,
+      rgb(228 240 255 / 0.16) 100%
+    );
+    -webkit-backdrop-filter: blur(7px) saturate(1.06);
+    backdrop-filter: blur(7px) saturate(1.06);
+    transition:
+      background-color 0.5s ease,
+      -webkit-backdrop-filter 0.5s ease,
+      backdrop-filter 0.5s ease;
+  }
+
+  .login-pane-visual:hover .login-visual-glass {
+    background: rgb(255 255 255 / 0.06);
+    -webkit-backdrop-filter: blur(0px) saturate(1);
+    backdrop-filter: blur(0px) saturate(1);
+  }
+
+  .login-visual-copy {
+    transition: text-shadow 0.5s ease;
+  }
+
+  .login-pane-visual:hover .login-visual-copy {
+    text-shadow:
+      0 1px 18px rgb(255 255 255 / 0.9),
+      0 1px 2px rgb(255 255 255 / 0.8);
+  }
+
+  .login-visual-copy h2 {
+    margin: 0;
+    color: #102b45;
+    font-size: clamp(1.6rem, 2.6vw, 2rem);
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: -0.01em;
+  }
+
+  .login-visual-copy p {
+    max-width: 17rem;
+    margin: 0.75rem auto 0;
+    color: rgb(13 38 62 / 0.78);
+    font-size: 0.82rem;
+    line-height: 1.8;
+  }
+
+  .login-visual-cta {
+    min-width: 10rem;
+    padding: 0.68rem 1.8rem;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 0.86rem;
+    font-weight: 700;
+    background: linear-gradient(
+      135deg,
+      var(--primary),
+      color-mix(in srgb, var(--primary) 76%, #1d4ed8)
+    );
+    box-shadow: 0 0.65rem 1.5rem color-mix(in srgb, var(--primary) 34%, transparent);
+    transition:
+      transform 0.18s ease,
+      filter 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+
+  .login-visual-cta:hover {
+    filter: brightness(1.06);
+    transform: translateY(-1px);
+  }
+
+  .login-visual-cta:active {
+    transform: scale(0.97);
+  }
+
+  .login-pane-panel {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 2.6rem 2.4rem;
+    background: color-mix(in srgb, var(--primary) 8%, var(--card-bg));
+  }
+
+  .login-panel-header {
+    margin-bottom: 1.7rem;
+    text-align: center;
+  }
+
+  .login-panel-header h2 {
+    margin: 0;
+    color: var(--text-color);
+    font-size: 1.55rem;
+    font-weight: 800;
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+  }
+
+  .login-panel-header p {
+    margin: 0.6rem 0 0;
+    color: var(--content-meta);
+    font-size: 0.8rem;
+    line-height: 1.7;
+  }
+
+  .login-form {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .login-field {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .login-field-control {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    padding: 0 0.8rem;
+    border: 1px solid color-mix(in srgb, var(--line-divider) 72%, transparent);
+    border-radius: 0.6rem;
+    background: color-mix(in srgb, var(--card-bg) 86%, #fff 14%);
+    transition:
+      border-color 0.2s ease,
+      box-shadow 0.2s ease;
+  }
+
+  .login-field-control:focus-within {
+    border-color: color-mix(in srgb, var(--primary) 58%, transparent);
+    box-shadow: 0 0 0 0.2rem color-mix(in srgb, var(--primary) 16%, transparent);
+  }
+
+  .login-field-control :global(svg) {
+    width: 1.05rem;
+    height: 1.05rem;
+    flex: none;
+    color: color-mix(in srgb, var(--primary) 68%, var(--content-meta));
+  }
+
+  .login-field-control input {
+    flex: 1 1 auto;
+    min-width: 0;
+    padding: 0.72rem 0;
+    border: 0;
+    background: transparent;
+    color: var(--btn-content);
+    font-size: 0.88rem;
+    outline: none;
+  }
+
+  .login-field-control input::placeholder {
+    color: color-mix(in srgb, var(--content-meta) 82%, transparent);
+  }
+
+  .login-password-toggle {
+    display: grid;
+    place-items: center;
+    width: 1.9rem;
+    height: 1.9rem;
+    flex: none;
+    border-radius: 0.5rem;
+    color: var(--content-meta);
+    transition:
+      color 0.2s ease,
+      background 0.2s ease;
+  }
+
+  .login-password-toggle:hover {
+    color: var(--primary);
+    background: var(--btn-regular-bg-hover);
+  }
+
+  .login-password-toggle :global(svg) {
+    width: 1.05rem;
+    height: 1.05rem;
+    color: inherit;
+  }
+
+  .login-captcha-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0.5rem;
+  }
+
+  .login-captcha-row[hidden] {
+    display: none;
+  }
+
+  .login-captcha-input {
+    flex: 1 1 auto;
+  }
+
+  .login-code-request {
+    flex: none;
+    padding: 0.55rem 0.9rem;
+    border: 1px solid color-mix(in srgb, var(--primary) 40%, var(--line-divider));
+    border-radius: 0.6rem;
+    color: var(--primary);
+    font-size: 0.78rem;
+    font-weight: 700;
+    white-space: nowrap;
+    background: color-mix(in srgb, var(--primary) 8%, var(--card-bg));
+    transition:
+      border-color 0.2s ease,
+      background 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .login-code-request:hover:not(:disabled) {
+    border-color: color-mix(in srgb, var(--primary) 62%, var(--line-divider));
+    background: color-mix(in srgb, var(--primary) 14%, var(--card-bg));
+  }
+
+  .login-code-request:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  .login-code-request:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .login-captcha-display {
+    display: grid;
+    place-items: center;
+    width: 7.4rem;
+    flex: none;
+    overflow: hidden;
+    border: 1px solid color-mix(in srgb, var(--line-divider) 70%, transparent);
+    border-radius: 0.6rem;
+    background:
+      repeating-linear-gradient(
+        115deg,
+        rgb(255 255 255 / 0.35) 0 6px,
+        transparent 6px 12px
+      ),
+      linear-gradient(135deg, #fbcfe8 0%, #bfdbfe 100%);
+    transition:
+      filter 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .login-captcha-display:hover {
+    filter: brightness(1.04);
+  }
+
+  .login-captcha-display:active {
+    transform: scale(0.98);
+  }
+
+  .login-captcha-code {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.08rem;
+    font-size: 1.05rem;
+    font-weight: 800;
+    font-style: italic;
+    letter-spacing: 0.04rem;
+    user-select: none;
+  }
+
+  .login-forgot {
+    margin: -0.1rem 0 0;
+    text-align: center;
+  }
+
+  .login-forgot-link {
+    color: var(--content-meta);
+    font-size: 0.78rem;
+    transition: color 0.2s ease;
+  }
+
+  .login-forgot-link:hover {
+    color: var(--primary);
+    text-decoration: underline;
+  }
+
+  .login-forgot-hint {
+    margin: 0.4rem 0 0;
+    color: var(--content-meta);
+    font-size: 0.72rem;
+    line-height: 1.6;
+  }
+
+  .login-error {
+    min-height: 1.1rem;
+    margin: 0;
+    color: #ef4444;
+    font-size: 0.78rem;
+    text-align: center;
+  }
+
+  .login-error:empty {
+    visibility: hidden;
+  }
+
+  .login-notice {
+    min-height: 1.1rem;
+    margin: 0;
+    color: color-mix(in srgb, var(--primary) 78%, #0f766e);
+    font-size: 0.78rem;
+    text-align: center;
+  }
+
+  .login-notice:empty {
+    visibility: hidden;
+  }
+
+  .login-submit {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.45rem;
+    min-width: 9.5rem;
+    margin: 0.3rem auto 0;
+    padding: 0.68rem 2.2rem;
+    border-radius: 999px;
+    color: #fff;
+    font-size: 0.88rem;
+    font-weight: 700;
+    background: linear-gradient(
+      135deg,
+      var(--primary),
+      color-mix(in srgb, var(--primary) 74%, #0b1220)
+    );
+    box-shadow: 0 0.6rem 1.4rem color-mix(in srgb, var(--primary) 30%, transparent);
+    transition:
+      transform 0.18s ease,
+      filter 0.18s ease,
+      box-shadow 0.18s ease;
+  }
+
+  .login-submit:hover:not(:disabled) {
+    filter: brightness(1.06);
+    transform: translateY(-1px);
+  }
+
+  .login-submit:active:not(:disabled) {
+    transform: scale(0.98);
+  }
+
+  .login-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .login-profile {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    padding: 1rem;
+    border: 1px solid color-mix(in srgb, var(--line-divider) 80%, transparent);
+    border-radius: 0.9rem;
+    background: var(--btn-regular-bg);
+  }
+
+  .login-profile-avatar {
+    display: grid;
+    place-items: center;
+    width: 3rem;
+    height: 3rem;
+    flex: none;
+    border-radius: 999px;
+    background: linear-gradient(
+      135deg,
+      var(--primary),
+      color-mix(in srgb, var(--primary) 62%, #0b1220)
+    );
+    color: #fff;
+    font-size: 1.1rem;
+    font-weight: 800;
+    box-shadow: 0 0.4rem 1rem color-mix(in srgb, var(--primary) 26%, transparent);
+  }
+
+  .login-profile-info {
+    min-width: 0;
+  }
+
+  .login-profile-name {
+    margin: 0;
+    overflow: hidden;
+    color: var(--text-color);
+    font-size: 1rem;
+    font-weight: 800;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .login-profile-role {
+    margin: 0.25rem 0 0;
+    color: var(--content-meta);
+    font-size: 0.76rem;
+  }
+
+  .login-profile-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    margin-top: 1.2rem;
+  }
+
+  .login-profile-actions .login-submit {
+    width: 100%;
+    margin: 0;
+  }
+
+  .login-logout {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    width: 100%;
+    padding: 0.72rem 1rem;
+    border: 1px solid var(--line-divider);
+    border-radius: 0.8rem;
+    color: var(--btn-content);
+    font-size: 0.86rem;
+    font-weight: 600;
+    transition:
+      border-color 0.2s ease,
+      color 0.2s ease,
+      background 0.2s ease;
+  }
+
+  .login-logout:hover {
+    border-color: color-mix(in srgb, var(--primary) 52%, var(--line-divider));
+    color: var(--primary);
+    background: color-mix(in srgb, var(--primary) 8%, transparent);
+  }
+
+  .login-logout:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .login-logout :global(svg) {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .login-modal-close {
+    position: absolute;
+    top: 0.85rem;
+    right: 0.85rem;
+    z-index: 3;
+    display: grid;
+    place-items: center;
+    width: 2.2rem;
+    height: 2.2rem;
+    border: 1px solid color-mix(in srgb, var(--line-divider) 75%, transparent);
+    border-radius: 999px;
+    color: var(--content-meta);
+    background: color-mix(in srgb, var(--card-bg) 82%, transparent);
+    transition:
+      color 0.2s ease,
+      background 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  .login-modal-close:hover {
+    color: var(--primary);
+    background: var(--btn-regular-bg-hover);
+    transform: rotate(90deg);
+  }
+
+  .login-modal-close :global(svg) {
+    width: 1.1rem;
+    height: 1.1rem;
+  }
+
+  :global(html.dark) .login-modal-backdrop {
+    background: rgb(2 6 23 / 0.62);
+  }
+
+  :global(html.dark) .login-modal-dialog {
+    border-color: color-mix(in srgb, var(--primary) 26%, var(--line-divider));
+    box-shadow:
+      0 2rem 4rem rgb(0 0 0 / 0.5),
+      inset 0 1px 0 rgb(255 255 255 / 0.06);
+  }
+
+  :global(html.dark) .login-field-control {
+    background: color-mix(in srgb, var(--card-bg) 82%, #fff 6%);
+  }
+
+  @media (max-width: 820px) {
+    .login-modal {
+      padding: 0.9rem;
+    }
+
+    .login-modal-dialog {
+      max-height: calc(100dvh - 1.8rem);
+      overflow-y: auto;
+    }
+
+    .login-modal-body {
+      display: block;
+    }
+
+    .login-pane {
+      width: 100%;
+      transition: none;
+    }
+
+    .login-modal.is-swapped .login-pane-panel,
+    .login-modal.is-swapped .login-pane-visual {
+      transform: none;
+    }
+
+    .login-pane-visual {
+      min-height: 10.5rem;
+    }
+
+    .login-visual-glass {
+      gap: 0.7rem;
+      padding: 1.2rem;
+    }
+
+    .login-visual-copy h2 {
+      font-size: 1.35rem;
+    }
+
+    .login-visual-copy p {
+      margin-top: 0.4rem;
+      font-size: 0.76rem;
+    }
+
+    .login-visual-cta {
+      min-width: 8.5rem;
+      padding: 0.55rem 1.4rem;
+      font-size: 0.8rem;
+    }
+
+    .login-pane-panel {
+      padding: 1.7rem 1.5rem 1.9rem;
+    }
+
+    .login-panel-header {
+      margin-bottom: 1.2rem;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .login-modal.is-open .login-modal-backdrop,
+    .login-modal.is-open .login-modal-dialog {
+      animation: none;
+    }
+
+    .login-pane,
+    .login-visual-image,
+    .login-modal-close,
+    .login-visual-cta,
+    .login-submit,
+    .login-logout {
+      transition: none;
+    }
+  }
+</style>
+
+<script>
+  import {
+    fetchMe,
+    getAccessToken,
+    login,
+    logout,
+    register,
+    resetPassword,
+    sendEmailCode,
+  } from "@/utils/api-client";
+
+  type AuthUser = {
+    id: number;
+    username: string;
+    email: string | null;
+    is_admin: boolean;
+  };
+  type LoginView = "login" | "register" | "forgot" | "profile";
+
+  const CAPTCHA_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+  const CAPTCHA_PALETTE = ["#be185d", "#1d4ed8", "#7c3aed", "#0f766e"];
+  const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  const initLoginModal = () => {
+    const modal = document.getElementById("login-modal");
+    if (!modal || modal.dataset.bound === "true") return;
+    modal.dataset.bound = "true";
+
+    const body = modal.querySelector<HTMLElement>(".login-modal-body");
+    const dialog = modal.querySelector<HTMLElement>(".login-modal-dialog");
+    const siteName = body?.dataset.loginSite?.trim() || "这里";
+
+    const loginView = modal.querySelector<HTMLElement>('[data-login-view="form"]');
+    const registerView = modal.querySelector<HTMLElement>('[data-login-view="register"]');
+    const forgotView = modal.querySelector<HTMLElement>('[data-login-view="forgot"]');
+    const profileView = modal.querySelector<HTMLElement>('[data-login-view="profile"]');
+    const visualTitle = modal.querySelector<HTMLElement>("[data-login-visual-title]");
+    const visualText = modal.querySelector<HTMLElement>("[data-login-visual-text]");
+    const ctaButton = modal.querySelector<HTMLButtonElement>("[data-login-cta]");
+    const ctaLabel = modal.querySelector<HTMLElement>("[data-login-cta-label]");
+
+    const loginForm = document.getElementById("login-modal-form") as HTMLFormElement | null;
+    const loginUsername = document.getElementById("login-modal-username") as HTMLInputElement | null;
+    const loginPassword = document.getElementById("login-modal-password") as HTMLInputElement | null;
+    const loginError = document.getElementById("login-modal-error");
+    const loginNotice = document.getElementById("login-modal-notice");
+    const loginSubmit = document.getElementById("login-modal-submit") as HTMLButtonElement | null;
+
+    const captchaRow = modal.querySelector<HTMLElement>("[data-login-captcha]");
+    const captchaInput = document.getElementById("login-modal-captcha") as HTMLInputElement | null;
+    const captchaCodeEl = modal.querySelector<HTMLElement>("[data-login-captcha-code]");
+    const captchaRefresh = modal.querySelector<HTMLButtonElement>("[data-login-captcha-refresh]");
+    const forgotButton = modal.querySelector<HTMLButtonElement>("[data-login-forgot]");
+
+    const registerForm = document.getElementById(
+      "login-modal-register-form",
+    ) as HTMLFormElement | null;
+    const registerUsername = document.getElementById(
+      "login-modal-register-username",
+    ) as HTMLInputElement | null;
+    const registerEmail = document.getElementById(
+      "login-modal-register-email",
+    ) as HTMLInputElement | null;
+    const registerCode = document.getElementById(
+      "login-modal-register-code",
+    ) as HTMLInputElement | null;
+    const registerPassword = document.getElementById(
+      "login-modal-register-password",
+    ) as HTMLInputElement | null;
+    const registerConfirm = document.getElementById(
+      "login-modal-register-confirm",
+    ) as HTMLInputElement | null;
+    const registerError = document.getElementById("login-modal-register-error");
+    const registerNotice = document.getElementById("login-modal-register-notice");
+    const registerSubmit = document.getElementById(
+      "login-modal-register-submit",
+    ) as HTMLButtonElement | null;
+    const registerCodeRequestBtn = modal.querySelector<HTMLButtonElement>(
+      "[data-register-code-request]",
+    );
+
+    const forgotForm = document.getElementById(
+      "login-modal-forgot-form",
+    ) as HTMLFormElement | null;
+    const forgotEmail = document.getElementById(
+      "login-modal-forgot-email",
+    ) as HTMLInputElement | null;
+    const forgotCode = document.getElementById(
+      "login-modal-forgot-code",
+    ) as HTMLInputElement | null;
+    const forgotPassword = document.getElementById(
+      "login-modal-forgot-password",
+    ) as HTMLInputElement | null;
+    const forgotError = document.getElementById("login-modal-forgot-error");
+    const forgotTip = modal.querySelector<HTMLElement>("[data-login-forgot-tip]");
+    const codeRequestBtn = modal.querySelector<HTMLButtonElement>(
+      "[data-login-code-request]",
+    );
+
+    const avatarEl = modal.querySelector<HTMLElement>("[data-login-avatar]");
+    const nameEl = modal.querySelector<HTMLElement>("[data-login-username]");
+    const roleEl = modal.querySelector<HTMLElement>("[data-login-role]");
+    const logoutBtn = modal.querySelector<HTMLButtonElement>("[data-login-logout]");
+
+    let lastFocused: HTMLElement | null = null;
+    let currentView: LoginView = "login";
+    let failedAttempts = 0;
+    let captchaCode = "";
+
+    const visualCopy: Record<LoginView, { title: string; text: string; cta: string | null }> = {
+      login: {
+        title: "Hello Friend!",
+        text: `点击下面按钮注册账号，一起成为 ${siteName} 的伙伴吧！`,
+        cta: "注册",
+      },
+      register: {
+        title: "Welcome Back!",
+        text: "已经有账号了？点击下面按钮即可返回登录。",
+        cta: "登录",
+      },
+      forgot: {
+        title: "Need a hand?",
+        text: "输入注册邮箱获取验证码，验证通过后即可用新密码登录。",
+        cta: "返回登录",
+      },
+      profile: {
+        title: "Hello Friend!",
+        text: "你已登录，可以继续浏览站点，也可以退出当前账号。",
+        cta: null,
+      },
+    };
+
+    const setLoginError = (message: string): void => {
+      if (loginError) loginError.textContent = message;
+    };
+
+    const setLoginNotice = (message: string): void => {
+      if (loginNotice) loginNotice.textContent = message;
+    };
+
+    const setRegisterError = (message: string): void => {
+      if (registerError) registerError.textContent = message;
+    };
+
+    const setRegisterNotice = (message: string): void => {
+      if (registerNotice) registerNotice.textContent = message;
+    };
+
+    /** 验证码按钮冷却倒计时，避免短时间内重复请求 */
+    const startCodeCooldown = (button: HTMLButtonElement, seconds: number): void => {
+      let remaining = seconds;
+      button.disabled = true;
+      button.textContent = `${remaining}s 后重发`;
+      const timer = window.setInterval(() => {
+        remaining -= 1;
+        if (remaining <= 0) {
+          window.clearInterval(timer);
+          button.disabled = false;
+          button.textContent = "获取验证码";
+          return;
+        }
+        button.textContent = `${remaining}s 后重发`;
+      }, 1000);
+    };
+
+    const setForgotError = (message: string): void => {
+      if (forgotError) forgotError.textContent = message;
+    };
+
+    const setForgotTip = (message: string): void => {
+      if (!forgotTip) return;
+      forgotTip.textContent = message;
+      forgotTip.hidden = message.length === 0;
+    };
+
+    const refreshCaptcha = (): void => {
+      captchaCode = Array.from(
+        { length: 4 },
+        () => CAPTCHA_CHARS[Math.floor(Math.random() * CAPTCHA_CHARS.length)],
+      ).join("");
+      if (!captchaCodeEl) return;
+      captchaCodeEl.replaceChildren();
+      for (const [index, char] of Array.from(captchaCode).entries()) {
+        const span = document.createElement("span");
+        span.textContent = char;
+        span.style.color = CAPTCHA_PALETTE[index % CAPTCHA_PALETTE.length];
+        span.style.display = "inline-block";
+        span.style.transform = `rotate(${(Math.random() * 22 - 11).toFixed(0)}deg)`;
+        captchaCodeEl.append(span);
+      }
+    };
+
+    const setCaptchaVisible = (visible: boolean): void => {
+      if (captchaRow) captchaRow.hidden = !visible;
+      if (!visible) {
+        if (captchaInput) captchaInput.value = "";
+        return;
+      }
+      refreshCaptcha();
+      if (captchaInput) captchaInput.value = "";
+    };
+
+    const setView = (view: LoginView): void => {
+      currentView = view;
+      if (loginView) loginView.hidden = view !== "login";
+      if (registerView) registerView.hidden = view !== "register";
+      if (forgotView) forgotView.hidden = view !== "forgot";
+      if (profileView) profileView.hidden = view !== "profile";
+      // 注册视图时图片毛玻璃面板与表单面板交换位置
+      modal.classList.toggle("is-swapped", view === "register");
+
+      const copy = visualCopy[view];
+      if (visualTitle) visualTitle.textContent = copy.title;
+      if (visualText) visualText.textContent = copy.text;
+      if (ctaButton) ctaButton.hidden = copy.cta === null;
+      if (ctaLabel && copy.cta) ctaLabel.textContent = copy.cta;
+    };
+
+    const fillProfile = (user: AuthUser): void => {
+      if (avatarEl) {
+        avatarEl.textContent = user.username.trim().charAt(0).toUpperCase() || "A";
+      }
+      if (nameEl) nameEl.textContent = user.username;
+      if (roleEl) roleEl.textContent = user.is_admin ? "管理员账号" : "普通账号";
+    };
+
+    const focusPrimary = (): void => {
+      if (currentView === "profile") {
+        modal.querySelector<HTMLButtonElement>("[data-login-dismiss]")?.focus();
+      } else if (currentView === "register") {
+        registerUsername?.focus();
+      } else if (currentView === "forgot") {
+        forgotEmail?.focus();
+      } else {
+        loginUsername?.focus();
+      }
+    };
+
+    const open = async (): Promise<void> => {
+      if (!modal.hidden && modal.classList.contains("is-open")) return;
+      lastFocused =
+        document.activeElement instanceof HTMLElement ? document.activeElement : null;
+      modal.hidden = false;
+      document.body.style.overflow = "hidden";
+      requestAnimationFrame(() => {
+        modal.classList.add("is-open");
+        focusPrimary();
+      });
+      setLoginError("");
+      setLoginNotice("");
+      setRegisterError("");
+      setRegisterNotice("");
+      setForgotError("");
+      setForgotTip("");
+      if (loginPassword) loginPassword.value = "";
+
+      setView("login");
+      setCaptchaVisible(failedAttempts >= 3);
+      if (!getAccessToken()) return;
+      try {
+        const user = await fetchMe();
+        if (modal.hidden) return;
+        fillProfile(user);
+        setView("profile");
+      } catch {
+        // 令牌失效或后端不可用时保持登录表单
+      }
+    };
+
+    const close = (): void => {
+      modal.classList.remove("is-open");
+      modal.hidden = true;
+      document.body.style.overflow = "";
+      if (lastFocused) lastFocused.focus({ preventScroll: true });
+      lastFocused = null;
+    };
+
+    const trapFocus = (event: KeyboardEvent): void => {
+      if (!dialog) return;
+      const focusables = Array.from(
+        dialog.querySelectorAll<HTMLElement>(
+          'button:not([disabled]), input:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((element) => element.offsetParent !== null);
+      if (focusables.length === 0) return;
+      const first = focusables[0];
+      const last = focusables[focusables.length - 1];
+      if (event.shiftKey && document.activeElement === first) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && document.activeElement === last) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
+
+    const onDocumentClick = (event: MouseEvent): void => {
+      if (event.defaultPrevented) return;
+      if (!(event.target instanceof Element)) return;
+
+      if (event.target.closest("[data-login-open]")) {
+        event.preventDefault();
+        void open();
+        return;
+      }
+      if (event.target.closest("[data-login-close]")) {
+        close();
+        return;
+      }
+      if (event.target.closest("[data-login-dismiss]")) {
+        close();
+        return;
+      }
+
+      if (event.target.closest("[data-login-cta]")) {
+        const next: LoginView =
+          currentView === "register" || currentView === "forgot"
+            ? "login"
+            : "register";
+        setView(next);
+        focusPrimary();
+      }
+    };
+
+    const onKeydown = (event: KeyboardEvent): void => {
+      if (modal.hidden) return;
+      if (event.key === "Escape") {
+        event.preventDefault();
+        close();
+        return;
+      }
+      if (event.key === "Tab") trapFocus(event);
+    };
+
+    for (const toggle of modal.querySelectorAll<HTMLButtonElement>(
+      "[data-login-password-toggle]",
+    )) {
+      const input = toggle
+        .closest(".login-field-control")
+        ?.querySelector<HTMLInputElement>("input");
+      const eyeShow = toggle.querySelector<HTMLElement>("[data-login-eye-show]");
+      const eyeHide = toggle.querySelector<HTMLElement>("[data-login-eye-hide]");
+      toggle.addEventListener("click", () => {
+        if (!input) return;
+        const toVisible = input.type === "password";
+        input.type = toVisible ? "text" : "password";
+        eyeShow?.classList.toggle("hidden", toVisible);
+        eyeHide?.classList.toggle("hidden", !toVisible);
+        toggle.setAttribute("aria-label", toVisible ? "隐藏密码" : "显示密码");
+        input.focus();
+      });
+    }
+
+    captchaRefresh?.addEventListener("click", () => {
+      refreshCaptcha();
+      if (captchaInput) {
+        captchaInput.value = "";
+        captchaInput.focus();
+      }
+    });
+
+    forgotButton?.addEventListener("click", () => {
+      const account = loginUsername?.value.trim() ?? "";
+      if (forgotEmail && !forgotEmail.value && account.includes("@")) {
+        forgotEmail.value = account;
+      }
+      setLoginError("");
+      setForgotError("");
+      setForgotTip("");
+      setView("forgot");
+      focusPrimary();
+    });
+
+    loginForm?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!loginUsername || !loginPassword || !loginSubmit) return;
+
+      const account = loginUsername.value.trim();
+      const password = loginPassword.value;
+      if (!account || !password) {
+        setLoginError("请输入用户名（或邮箱）和密码");
+        return;
+      }
+
+      if (failedAttempts >= 3) {
+        const entered = (captchaInput?.value ?? "").trim().toUpperCase();
+        if (!entered) {
+          setLoginError("请输入验证码");
+          return;
+        }
+        if (entered !== captchaCode) {
+          setLoginError("验证码不正确，请重新输入");
+          refreshCaptcha();
+          if (captchaInput) captchaInput.value = "";
+          return;
+        }
+      }
+
+      loginSubmit.disabled = true;
+      const label = loginForm.querySelector<HTMLElement>("[data-login-submit-label]");
+      if (label) label.textContent = "登录中…";
+      setLoginError("");
+      setLoginNotice("");
+      try {
+        await login(account, password);
+        failedAttempts = 0;
+        setCaptchaVisible(false);
+        window.dispatchEvent(new CustomEvent("yukina:auth-changed"));
+        loginPassword.value = "";
+        close();
+      } catch (error) {
+        failedAttempts += 1;
+        if (failedAttempts >= 3) {
+          setCaptchaVisible(true);
+          setLoginError("密码错误次数过多，请输入验证码后重试");
+        } else {
+          setLoginError(error instanceof Error ? error.message : "登录失败，请稍后再试");
+        }
+      } finally {
+        loginSubmit.disabled = false;
+        if (label) label.textContent = "登录";
+      }
+    });
+
+    registerForm?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      if (!registerSubmit) return;
+      const username = registerUsername?.value.trim() ?? "";
+      const email = registerEmail?.value.trim() ?? "";
+      const code = registerCode?.value.trim() ?? "";
+      const password = registerPassword?.value ?? "";
+      const confirm = registerConfirm?.value ?? "";
+      if (!username || !email || !code || !password) {
+        setRegisterError("请填写用户名、邮箱、验证码和密码");
+        return;
+      }
+      if (!EMAIL_PATTERN.test(email)) {
+        setRegisterError("邮箱格式不正确");
+        return;
+      }
+      if (!/^\d{6}$/.test(code)) {
+        setRegisterError("请输入 6 位数字邮箱验证码");
+        return;
+      }
+      if (password.length < 8 || password.length > 128) {
+        setRegisterError("密码长度需为 8-128 位");
+        return;
+      }
+      if (password !== confirm) {
+        setRegisterError("两次输入的密码不一致");
+        return;
+      }
+
+      registerSubmit.disabled = true;
+      const label = registerSubmit.querySelector<HTMLElement>("[data-login-submit-label]");
+      if (label) label.textContent = "注册中…";
+      setRegisterError("");
+      setRegisterNotice("");
+      try {
+        await register({ username, email, code, password });
+        window.dispatchEvent(new CustomEvent("yukina:auth-changed"));
+        registerForm.reset();
+        close();
+      } catch (error) {
+        setRegisterError(error instanceof Error ? error.message : "注册失败，请稍后再试");
+      } finally {
+        registerSubmit.disabled = false;
+        if (label) label.textContent = "创建账号";
+      }
+    });
+
+    // 注册：发送邮箱验证码
+    registerCodeRequestBtn?.addEventListener("click", async () => {
+      const email = registerEmail?.value.trim() ?? "";
+      if (!EMAIL_PATTERN.test(email)) {
+        setRegisterError("请先填写正确的邮箱");
+        registerEmail?.focus();
+        return;
+      }
+      registerCodeRequestBtn.disabled = true;
+      setRegisterError("");
+      setRegisterNotice("");
+      try {
+        const result = await sendEmailCode(email, "register");
+        setRegisterNotice(
+          `${result.detail}（${result.code_ttl_minutes ?? 10} 分钟内有效）`,
+        );
+        startCodeCooldown(registerCodeRequestBtn, 60);
+        registerCode?.focus();
+      } catch (error) {
+        setRegisterError(
+          error instanceof Error ? error.message : "获取验证码失败，请稍后再试",
+        );
+        registerCodeRequestBtn.disabled = false;
+      }
+    });
+
+    codeRequestBtn?.addEventListener("click", async () => {
+      const email = forgotEmail?.value.trim() ?? "";
+      if (!EMAIL_PATTERN.test(email)) {
+        setForgotError("请先填写正确的邮箱");
+        forgotEmail?.focus();
+        return;
+      }
+      codeRequestBtn.disabled = true;
+      setForgotError("");
+      setForgotTip("");
+      try {
+        const result = await sendEmailCode(email, "reset");
+        setForgotTip(
+          `${result.detail}（${result.code_ttl_minutes ?? 10} 分钟内有效）`,
+        );
+        startCodeCooldown(codeRequestBtn, 60);
+        forgotCode?.focus();
+      } catch (error) {
+        setForgotError(
+          error instanceof Error ? error.message : "获取验证码失败，请稍后再试",
+        );
+        codeRequestBtn.disabled = false;
+      }
+    });
+
+    forgotForm?.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const email = forgotEmail?.value.trim() ?? "";
+      const code = forgotCode?.value.trim() ?? "";
+      const password = forgotPassword?.value ?? "";
+      if (!email || !code || !password) {
+        setForgotError("请填写邮箱、验证码和新密码");
+        return;
+      }
+      if (!EMAIL_PATTERN.test(email)) {
+        setForgotError("邮箱格式不正确");
+        return;
+      }
+      if (!/^\d{6}$/.test(code)) {
+        setForgotError("请输入 6 位数字验证码");
+        return;
+      }
+      if (password.length < 8 || password.length > 128) {
+        setForgotError("密码长度需为 8-128 位");
+        return;
+      }
+
+      const submit = forgotForm.querySelector<HTMLButtonElement>(
+        "#login-modal-forgot-submit",
+      );
+      const label = submit?.querySelector<HTMLElement>("[data-login-submit-label]");
+      if (submit) submit.disabled = true;
+      if (label) label.textContent = "重置中…";
+      setForgotError("");
+      try {
+        const result = await resetPassword(email, code, password);
+        forgotForm.reset();
+        setForgotTip("");
+        if (loginUsername) loginUsername.value = email;
+        if (loginPassword) loginPassword.value = "";
+        setView("login");
+        setLoginError("");
+        setLoginNotice(result.detail);
+      } catch (error) {
+        setForgotError(
+          error instanceof Error ? error.message : "重置失败，请稍后再试",
+        );
+      } finally {
+        if (submit) submit.disabled = false;
+        if (label) label.textContent = "重置密码";
+      }
+    });
+
+    logoutBtn?.addEventListener("click", async () => {
+      logoutBtn.disabled = true;
+      try {
+        await logout();
+      } catch {
+        // 即使请求失败也清除本地登录态
+      }
+      window.dispatchEvent(new CustomEvent("yukina:auth-changed"));
+      setView("login");
+      logoutBtn.disabled = false;
+      loginUsername?.focus();
+    });
+
+    document.addEventListener("click", onDocumentClick);
+    document.addEventListener("keydown", onKeydown);
+    document.addEventListener("astro:before-swap", () => {
+      if (modal.hidden) return;
+      modal.classList.remove("is-open");
+      modal.hidden = true;
+      document.body.style.overflow = "";
+      lastFocused = null;
+    });
+  };
+
+  initLoginModal();
+  document.addEventListener("astro:page-load", initLoginModal);
+</script>

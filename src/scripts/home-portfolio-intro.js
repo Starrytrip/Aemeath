@@ -59,9 +59,14 @@ export {};
 		}
 	};
 
-	const isIntroEnabled = () =>
-		document.documentElement.dataset.siteTheme !== "pure" &&
-		readLocalStorage(introEnabledStorageKey) !== "0";
+	const defaultIntroEnabled = window.__yukinaSiteDefaults?.appearance?.intro_enabled ?? (intro?.getAttribute("data-default-enabled") === "true");
+	const isIntroEnabled = () => {
+		const stored = readLocalStorage(introEnabledStorageKey);
+		return (
+			document.documentElement.dataset.siteTheme !== "pure" &&
+			(stored === null ? defaultIntroEnabled : stored !== "0")
+		);
+	};
 
 	const getSelectedCharacter = () => {
 		const selectedId =

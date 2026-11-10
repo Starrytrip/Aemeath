@@ -388,7 +388,7 @@ body.wallpaper-transparent #navbar.firefly-navbar.scrolled > .firefly-nav-shell 
 
 @media (min-width: 1441px) {
     #navbar.firefly-navbar:not(.scrolled) .nav-container {
-        grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+        grid-template-columns: auto minmax(0, 1fr) auto;
     }
 }
 
@@ -467,7 +467,7 @@ body.wallpaper-transparent #navbar.firefly-navbar.scrolled > .firefly-nav-shell 
 #navbar.firefly-navbar .nav-links.is-layout-ready {
     position: absolute;
     top: 50%;
-    left: 50%;
+    left: var(--nav-menu-center, 50%);
     z-index: 30;
     box-sizing: border-box;
     height: 50px;
@@ -802,7 +802,7 @@ body.wallpaper-transparent #navbar.firefly-navbar.scrolled > .firefly-nav-shell 
 #navbar.firefly-navbar.scrolled .nav-links {
     position: absolute;
     top: 50%;
-    left: 50%;
+    left: var(--nav-menu-center, 50%);
     z-index: 30;
     display: flex !important;
     box-sizing: border-box;
@@ -944,6 +944,11 @@ body.wallpaper-transparent #navbar.firefly-navbar.scrolled > .firefly-nav-shell 
     width: 1rem;
     margin-left: 0;
     opacity: 1;
+}
+
+@media (min-width: 1441px) {
+    #navbar.firefly-navbar.nav-menu-overflow:not(.scrolled) .nav-links { display: none !important; }
+    #navbar.firefly-navbar.nav-menu-overflow .nav-actions > .menu-btn { display: flex !important; }
 }
 
 /*
